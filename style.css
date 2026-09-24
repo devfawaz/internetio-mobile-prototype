@@ -23,15 +23,10 @@
   --radius-pill: 48px;
 
   --font: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
-  /* iPhone 17 — 402 x 874pt, safe insets 62 top / 34 bottom. Device chrome
-     matches the GlamCorner prototype, which draws the same phone on a 320px
-     canvas; --k converts its canvas values back to points. */
-  --device-w: 402px;
-  --device-h: 874px;
-  --k: 1.25625;
-  --inset-top: 62px;
-  --inset-bottom: 34px;
-  --statusbar-h: 54px;
+  /* Pixel 10 Pro — 410 x 914dp (6.3", 1280 x 2856). System bars use the
+     Figma Android components: 52dp status bar, 24dp gesture navigation bar. */
+  --device-w: 410px;
+  --device-h: 914px;
 }
 
 *,
@@ -91,39 +86,23 @@ a { color: inherit; text-decoration: none; }
     box-shadow: 0 24px 48px rgba(8, 24, 51, 0.12), 0 0 0 1px rgba(8, 24, 51, 0.06);
   }
   .device .statusbar { display: flex; }
-  .menu { top: 112px; }
+  .menu { top: 102px; }
 }
 
-/* iOS status bar — only drawn on desktop; real phones show their own.
-   Fills the 62pt top safe area with the glyph row centred in the 54pt bar. */
+/* Android status bar (Figma ".Building Blocks/Status bar") — desktop only; real phones draw their own */
 .statusbar {
   display: none;
   flex: none;
-  align-items: center;
+  align-items: flex-end;
   justify-content: space-between;
-  height: var(--inset-top);
-  padding-left: calc(26px * var(--k));
-  padding-right: calc(20px * var(--k));
-  padding-bottom: calc(var(--inset-top) - var(--statusbar-h));
+  height: 52px;
+  padding: 10px 24px;
   background: var(--white);
-  color: #000;
+  color: #1d1b20;
   z-index: 2;
 }
-.sb-time {
-  font-size: calc(11px * var(--k));
-  font-weight: 700;
-  letter-spacing: calc(0.2px * var(--k));
-  font-variant-numeric: tabular-nums;
-}
-.sb-icons { display: flex; align-items: center; gap: calc(5px * var(--k)); }
-.sb-icons svg { display: block; }
-.sb-icons svg rect,
-.sb-icons svg path { fill: currentColor; }
-.sb-icons svg path[stroke-width] { stroke: currentColor; fill: none; }
-.sb-icons svg rect[stroke-width] { stroke: currentColor; fill: none; }
-.sb-signal { width: calc(17px * var(--k)); height: calc(11px * var(--k)); }
-.sb-wifi { width: calc(15px * var(--k)); height: calc(11px * var(--k)); }
-.sb-battery { width: calc(25px * var(--k)); height: calc(12px * var(--k)); }
+.sb-time { font-family: "Roboto", var(--font); font-size: 14px; font-weight: 500; line-height: 20px; letter-spacing: 0.14px; }
+.sb-icons { display: block; margin-bottom: 1.5px; }
 
 .app {
   display: flex;
@@ -1154,16 +1133,16 @@ button.avatar:focus-visible { outline: 2px solid var(--blue-500); outline-offset
 .tab.is-active .tab-label { color: var(--navy-800); font-weight: 600; }
 .tab:hover:not(.is-active) .tab-pill { background: var(--grey-100); }
 
-/* iOS home indicator — fills the 34pt bottom safe area; the pill is 139 x 5pt */
+/* Android gesture navigation bar (Figma ".Building Blocks/navigation") — 24dp, 108 x 4 handle */
 .home-indicator {
   flex: none;
   display: flex;
   align-items: center;
   justify-content: center;
-  height: var(--inset-bottom);
+  height: 24px;
   background: var(--grey-50);
 }
-.home-indicator span { width: 139px; height: 5px; border-radius: 2.5px; background: rgba(64, 64, 64, 0.35); }
+.home-indicator span { width: 108px; height: 4px; border-radius: 12px; background: #1d1b20; }
 .app.is-auth .home-indicator { background: var(--white); }
 @media (max-width: 519px), (max-height: 699px) {
   .home-indicator { height: env(safe-area-inset-bottom); }

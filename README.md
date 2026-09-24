@@ -15,7 +15,7 @@ A clickable mobile prototype of **internet.io**, a search product that asks seve
 - **Profiles:** accounts with several profiles choose one after login; switch, create or rename from the account menu.
 - **Explore AI:** browse agents by category, open an agent's details and start a chat with it (rename the chat with the pencil). Agent names, creators and stats are example content.
 
-Best viewed on a phone, or in a desktop browser where it renders at iPhone size with an iOS status bar and home indicator.
+Best viewed on a phone, or in a desktop browser where it renders at Pixel 10 Pro size with Android system bars.
 
 Add `?reset` to the URL to restore the sample data (useful between recording takes).
 
