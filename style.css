@@ -470,7 +470,7 @@ button.avatar:focus-visible { outline: 2px solid var(--blue-500); outline-offset
 
 /* ── Conversation ─────────────────────────────────────────── */
 
-.convo-wrap { padding: 0 16px 16px; min-height: 100%; display: flex; flex-direction: column; }
+.convo-wrap { padding: 0 16px; min-height: 100%; display: flex; flex-direction: column; }
 .convo {
   flex: 1;
   border-radius: 24px;
