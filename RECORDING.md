@@ -33,7 +33,7 @@ Tone: calm, first person, like showing a friend a tool you actually use. Short s
 | The budget version appears. | "Capsule hotel, konbini breakfasts, Kamakura instead of Nikko. That works." |
 | Point at the blue banner. | "Without an account I get five free questions. I'm going to want more than that." |
 
-*To show the limit on camera: the search and follow-up count as 2 of 5. Send three more follow-ups and the sixth opens the sign-up sheet.*
+*The full limit is shown in flow 11.*
 
 ## 3. Sign up in seconds, about 25s
 
@@ -87,10 +87,7 @@ Tone: calm, first person, like showing a friend a tool you actually use. Short s
 | Send **"Help me build a monthly budget on $4,000"**. | "It splits my money into needs, wants and savings." |
 | Tap the pencil, rename the chat **"Japan savings"**. | |
 
-Other questions with tailored answers if you want a different agent:
-- Code Master: **"Why does my loop skip items when I remove them from a list?"**
-- Study Buddy: **"Quiz me on photosynthesis"**
-- Campaign Crafter: **"Plan a launch campaign for a fitness app"**
+*More agents are in flow 15.*
 
 ## 9. Tidy up saved items, about 30s
 
@@ -114,9 +111,65 @@ Other questions with tailored answers if you want a different agent:
 
 ---
 
-## Suggested 2½ minute cut
+## 11. Hitting the guest limit, about 30s
 
-1 → 2 → 3 → 4 → 6 → 7 → 8, then the closing line.
+*Record logged out, straight after a `?reset`.*
+
+| On screen | Voiceover |
+|---|---|
+| Search **"Plan a 5-day trip to Tokyo"**, open OpenAI, tap **Ask follow-up**. | "Let's see how far I get without an account." |
+| Send **"Can you make it cheaper? My budget is $1,000 without flights."** | |
+| Send **"What should I pack for mid-April?"** Snackbar: "2 free questions left". | "The app tells me when I'm running low." |
+| Send **"Is the JR Pass worth it?"** and **"Where should I stay?"** Snackbar: "That was your last free question". | |
+| Send **"Any food I must try?"** The sign-up sheet opens: "You've used your 5 free questions". | "Five free questions, then it asks me to sign up. Fair enough." |
+
+## 12. Sign up with email, about 30s (alternative to flow 3)
+
+| On screen | Voiceover |
+|---|---|
+| Tap **Sign up** in the top bar. | "No Google account? Email works too." |
+| Type **"John"**, **"Doe"**, **"john.doe@example.com"**. Point at the disabled Continue button. | "Continue stays off until everything is valid." |
+| Type a password of 8 or more characters, tap the eye icon to show it. | |
+| Tap Continue. "Create your first profile": keep **John Doe**, tap Create. | "Same profile step, and I'm in." |
+
+## 13. A saved message, about 20s
+
+*Record signed in.*
+
+| On screen | Voiceover |
+|---|---|
+| Saved tab: open the **Japan trip** folder, tap **Is the JR Pass worth it?** | "Sometimes I only need one answer, not the whole chat." |
+| The saved message opens with its star. | "Like this: the JR Pass isn't worth it for a Tokyo-only trip." |
+| Tap the pencil, type **"JR Pass: skip it"**, press Enter. | "I rename it so I remember the verdict." |
+| Tap back, then open **Surprise party checklist** in Saved items. | "Same for my sister's party plan." |
+
+## 14. Finding the right agent, about 25s
+
+*Record signed in.*
+
+| On screen | Voiceover |
+|---|---|
+| Tap **Explore AI**. Let the search placeholder type "Try 'budget'". | "There are a lot of agents, so I search." |
+| Type **"python"**. Only **Code Master** is left. | |
+| Type **"zzz"**. "No agents match". Tap **Clear filters**. | "And if nothing matches, one tap resets it." |
+| Tap the **Education** chip. **Study Buddy** and **Lesson Planner** remain. | "Or I browse by category." |
+
+## 15. More agents in action, about 20s each
+
+*Record signed in. Open the agent from Explore AI, tap **Start chat**, then send the question. The placeholder already shows it.*
+
+| Agent | Send | Voiceover |
+|---|---|---|
+| **Code Master** | **"Why does my loop skip items when I remove them from a list?"** | "At work, Code Master explains bugs in plain English." |
+| **Study Buddy** | **"Quiz me on photosynthesis"** | "Study Buddy turns anything into a quiz." |
+| **Campaign Crafter** | **"Plan a launch campaign for a fitness app"** | "Campaign Crafter plans a launch in seconds." |
+
+---
+
+## Suggested cuts
+
+- **2½ minutes:** 1 → 2 → 3 → 4 → 6 → 7 → 8, then the closing line.
+- **Full walkthrough, about 7 minutes:** 11 → 1 → 12 → 4 → 13 → 5 → 6 → 7 → 14 → 8 → 15 → 9 → 10, then the closing line.
 
 ## Avoid on camera
 
