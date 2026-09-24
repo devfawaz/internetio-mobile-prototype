@@ -248,7 +248,7 @@
     exploreCat: "All",
     conversations: store.get("iio.conversations", null) || seedConversations(),
     folders: store.get("iio.folders", null) || seedFolders(),
-    guestFollowUps: 0,
+    guestQuestions: 0, // searches + follow-ups asked while signed out
     lastQuery: DEFAULT_QUERY,
     modelOrder: store.get("iio.modelOrder", null),
     prompts: store.get("iio.prompts", null) || [
@@ -318,6 +318,20 @@
   }
 
   const go = (hash) => { location.hash = hash; };
+
+  // Guests can ask 5 questions (searches and follow-ups) before sign-up is required.
+  const GUEST_LIMIT = 5;
+  function useGuestQuestion() {
+    if (state.signedIn) return true;
+    if (state.guestQuestions >= GUEST_LIMIT) {
+      openGate("You've used your 5 free questions", "Sign up free to keep asking, save answers and follow up without limits.");
+      return false;
+    }
+    state.guestQuestions++;
+    const left = GUEST_LIMIT - state.guestQuestions;
+    if (left <= 2) toast(left ? `${left} free question${left > 1 ? "s" : ""} left — sign up for unlimited` : "That was your last free question");
+    return true;
+  }
 
   // ── Top bar ───────────────────────────────────────────────
 
@@ -392,6 +406,7 @@
     form.addEventListener("submit", (e) => {
       e.preventDefault();
       const q = form.q.value.trim() || DEFAULT_QUERY;
+      if (!useGuestQuestion()) return;
       go(`#/results?q=${encodeURIComponent(q)}`);
     });
     // Tapping into an empty field pre-fills the demo query so the flow is one tap away.
@@ -568,11 +583,7 @@
       e.preventDefault();
       const text = form.msg.value.trim();
       if (!text) return;
-      if (guest && state.guestFollowUps >= 1) {
-        openGate("Sign up for unlimited follow-ups", "Guests get one free follow-up. Sign up to keep the conversation going.");
-        return;
-      }
-      if (guest) state.guestFollowUps++;
+      if (!useGuestQuestion()) return;
       form.msg.value = "";
       send.disabled = true;
       addFollowUp(convo, text);
@@ -1290,7 +1301,7 @@
   function completeAuth(user, message) {
     state.user = normalizeUser(user);
     state.signedIn = true;
-    state.guestFollowUps = 0;
+    state.guestQuestions = 0;
     persist();
     renderMenu();
     const target = state.returnTo && !/^#\/(signup|login)/.test(state.returnTo) ? state.returnTo : "#/";
@@ -1317,6 +1328,7 @@
   }
 
   function route() {
+    viewResults.token = null; // cancel a pending results render from a previous screen
     closeMenu();
     closeRowMenu();
     closeAgent();
@@ -1342,7 +1354,9 @@
       case "answer": viewAnswer(arg, params); setActiveTab("search"); break;
       case "chat": viewChat(arg, params); setActiveTab("chats"); break;
       case "chats": viewChats(parts[1] === "folder" ? parts[2] : null); setActiveTab("chats"); break;
-      case "explore": viewExplore(); setActiveTab("explore"); break;
+      case "explore":
+        if (!state.signedIn) { go("#/"); openGate("Sign up to explore AI agents", "Chat with specialised agents for writing, coding, studying and more."); break; }
+        viewExplore(); setActiveTab("explore"); break;
       default: viewHome(); setActiveTab("search");
     }
     if (page !== "chat") screen.scrollTop = 0;
@@ -1545,6 +1559,10 @@
       return input.focus();
     }
 
+    if (t.dataset.tab === "explore" && !state.signedIn) {
+      e.preventDefault();
+      return openGate("Sign up to explore AI agents", "Chat with specialised agents for writing, coding, studying and more.");
+    }
     if (t.dataset.tab === "chats" && !state.signedIn) {
       e.preventDefault();
       return openGate("Sign in to see your saved chats", "Save answers from any AI model and organise them into folders.");
@@ -1621,6 +1639,7 @@
     if (e.target.id === "top-search") {
       e.preventDefault();
       const q = e.target.q.value.trim() || DEFAULT_QUERY;
+      if (!useGuestQuestion()) return;
       go(`#/results?q=${encodeURIComponent(q)}`);
       if (parseHash().params.get("q") === q) route();
     }

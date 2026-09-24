@@ -9,7 +9,7 @@ A clickable mobile prototype of **internet.io**, a search product that asks seve
 - **Search → Results → Answer:** answers from 7 models (OpenAI, Meta, Gemini, Azure, Perplexity, Anthropic, Cohere). Step through them with Prev / Next.
 - **Ask follow-up:** opens a conversation with a simulated AI reply.
 - **Sign up:** email sign-up → create your first profile, or Continue with Google / Facebook → "Almost there" details → profile. Adapted for mobile from the desktop design. Login screen included.
-- **Signed out vs signed in:** guests get one free follow-up and a sign-up banner; saving, Chats and unlimited follow-ups need an account. After signing up you return to where you left off. Sign out from the avatar menu.
+- **Signed out vs signed in:** guests get 5 free questions (searches and follow-ups) with a sign-up banner in chats; saving, Saved, Explore AI and unlimited questions need an account. After signing up you return to where you left off. Sign out from the avatar menu.
 - **Saved:** flat list with folders, saved messages, Add to folder, New Folder, and a ⋮ menu to rename, move or delete.
 - **Personalise:** reorder AI models (drag handles) and manage custom prompts — pick one as active, create, edit, delete with undo.
 - **Profiles:** accounts with several profiles choose one after login; switch, create or rename from the account menu.
