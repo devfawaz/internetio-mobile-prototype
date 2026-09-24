@@ -76,6 +76,7 @@ a { color: inherit; text-decoration: none; }
   margin: 0 auto;
   background: var(--white);
   overflow: hidden;
+  overflow: clip; /* never scrolls, even when something inside is focused */
 }
 
 @media (min-width: 520px) and (min-height: 700px) {
@@ -1412,3 +1413,63 @@ button.avatar:focus-visible { outline: 2px solid var(--blue-500); outline-offset
 .agent-card, .result { transition: background-color 0.15s, transform 0.3s var(--md-spring); }
 .agent-card:active { transform: scale(0.98); }
 .auth-close, .agent-close { position: absolute; }
+
+/* ── Material 3 pass 2 ─────────────────────────────────────── */
+
+/* Search bar: M3 search bar is a filled, full-round 56dp container (48dp docked in the app bar) */
+.searchbar { box-shadow: none; background: var(--md-surface-container-high); border-radius: 28px; padding: 0 4px 0 8px; }
+.searchbar.lg { height: 56px; }
+.searchbar:not(.lg) { height: 48px; }
+.searchbar:focus-within { box-shadow: none; background: #e6e8ee; }
+.searchbar input { font-size: 16px; }
+.searchbar input::placeholder { color: var(--md-on-surface-variant); }
+.searchbar .lead { color: var(--md-on-surface); }
+
+/* Assist chips on answers: 32dp, 8dp corners, outlined */
+.chip {
+  height: 32px; padding: 0 16px 0 8px; gap: 8px; border-radius: 8px;
+  background: transparent; box-shadow: inset 0 0 0 1px var(--md-outline-variant);
+  color: var(--md-on-surface); font-size: 14px; font-weight: 500; line-height: 20px;
+}
+.chip .ms { font-size: 18px; color: var(--md-primary); }
+.chip:hover { background: rgba(29, 27, 32, 0.08); color: var(--md-on-surface); }
+.chip.is-on { background: var(--md-secondary-container); box-shadow: none; color: var(--navy-800); }
+.bubble-actions { gap: 8px; }
+
+/* Cards: filled cards use the 12dp medium shape; large containers use 28dp */
+.how-card, .agent-card { border-radius: 12px; }
+.how-card { background: var(--md-surface-container); }
+.card-panel, .agents-panel, .convo { border-radius: 28px; }
+.bubble.ai, .prose { border-radius: 4px 20px 20px 20px; }
+.bubble.user { border-radius: 20px 4px 20px 20px; }
+
+/* Filled tonal icon button (answer close) */
+.icon-btn.lg { width: 40px; height: 40px; background: var(--md-secondary-container); color: var(--navy-800); }
+.icon-btn.lg:hover { background: #cfdcf6; }
+
+/* Tip: rich tooltip shape */
+.tip { border-radius: 12px; background: var(--md-inverse-surface); }
+.tip-hide { color: var(--md-inverse-primary); }
+
+/* Connected button group (Prev / Next) */
+.pager { background: transparent; gap: 2px; padding: 0; }
+.pager .btn { background: var(--md-secondary-container); color: var(--navy-800); height: 48px; }
+.pager .prev { border-radius: 24px 8px 8px 24px; }
+.pager .next { border-radius: 8px 24px 24px 8px; }
+.pager .btn:disabled { background: rgba(29, 27, 32, 0.12); color: rgba(29, 27, 32, 0.38); }
+.pager .btn .ms { color: currentColor; }
+
+/* Composer uses the same filled search-bar surface */
+.composer { box-shadow: none; background: var(--md-surface-container-high); height: 56px; border-radius: 28px; padding: 0 8px 0 20px; }
+.composer:focus-within { box-shadow: none; background: #e6e8ee; }
+.composer input { font-size: 16px; }
+.composer input::placeholder { color: var(--md-on-surface-variant); }
+.send { width: 40px; height: 40px; background: var(--md-primary); color: #fff; }
+.send:disabled { background: rgba(29, 27, 32, 0.12); color: rgba(29, 27, 32, 0.38); opacity: 1; }
+
+/* Badge and sign-up banner */
+.beta { border-radius: 8px; padding: 4px 8px; background: var(--md-secondary-container); color: var(--navy-800); font-size: 11px; line-height: 16px; font-weight: 500; }
+.signup-banner { border-radius: 16px; background: var(--md-secondary-container); }
+
+/* Focus indicator: M3 3dp outline */
+:is(.btn, .icon-btn, .tab, .result, .srow-main, .chip, .cat-chip, .agent-card, .um-row, .pick-row):focus-visible { outline: 3px solid var(--md-primary); outline-offset: 2px; }

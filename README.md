@@ -1,4 +1,4 @@
-# internet.io — mobile prototype
+# internet.io: mobile prototype
 
 A clickable mobile prototype of **internet.io**, a search product that asks several AI models the same question and lets you compare, follow up on and save their answers. Built from the "📱 Mobile" page of the internet.io Figma file.
 
@@ -11,7 +11,7 @@ A clickable mobile prototype of **internet.io**, a search product that asks seve
 - **Sign up:** email sign-up → create your first profile, or Continue with Google / Facebook → "Almost there" details → profile. Adapted for mobile from the desktop design. Login screen included.
 - **Signed out vs signed in:** guests get 5 free questions (searches and follow-ups) with a sign-up banner in chats; saving, Saved, Explore AI and unlimited questions need an account. After signing up you return to where you left off. Sign out from the avatar menu.
 - **Saved:** flat list with folders, saved messages, Add to folder, New Folder, and a ⋮ menu to rename, move or delete.
-- **Personalise:** reorder AI models (drag handles) and manage custom prompts — pick one as active, create, edit, delete with undo.
+- **Personalise:** reorder AI models (drag handles) and manage custom prompts: pick one as active, create, edit, delete with undo.
 - **Profiles:** accounts with several profiles choose one after login; switch, create or rename from the account menu.
 - **Explore AI:** browse agents by category, open an agent's details and start a chat with it (rename the chat with the pencil). Agent names, creators and stats are example content.
 
@@ -21,7 +21,7 @@ Add `?reset` to the URL to restore the sample data (useful between recording tak
 
 ## Stack
 
-Plain HTML, CSS and JavaScript — no build step. Fonts: Inter and Material Symbols (Google Fonts). Model logos and the wordmark are exported from the Figma file.
+Plain HTML, CSS and JavaScript: no build step. Fonts: Inter and Material Symbols (Google Fonts). Model logos and the wordmark are exported from the Figma file.
 
 ## Run locally
 
