@@ -470,12 +470,73 @@ button.avatar:focus-visible { outline: 2px solid var(--blue-500); outline-offset
 
 /* ── Conversation ─────────────────────────────────────────── */
 
-.convo-wrap { padding: 0 16px; min-height: 100%; display: flex; flex-direction: column; }
-.convo {
+/* Full-height card: fixed header, content scrolls inside (chat, saved items, explore) */
+.card-view { height: 100%; display: flex; padding: 0 16px; }
+.screen:has(+ .dock:empty) > .card-view { padding-bottom: 16px; }
+.card-panel {
   flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
   border-radius: 24px;
   background: var(--grey-50);
 }
+.card-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: none;
+}
+.card-scroll::-webkit-scrollbar { display: none; }
+.card-head {
+  flex: none;
+  display: grid;
+  grid-template-columns: 40px 1fr 40px;
+  align-items: center;
+  height: 72px;
+  padding: 16px;
+  border-bottom: 1px solid var(--divider);
+}
+.card-head h2 { margin: 0; text-align: center; color: var(--grey-600); font-size: 14px; font-weight: 600; line-height: 20px; }
+.card-head .icon-btn { color: var(--grey-600); }
+
+/* Overflow fades — shown only on the edge that has hidden content */
+.card-scroll, .agent-grid { --fade: 32px; }
+.fade-top { -webkit-mask-image: linear-gradient(to bottom, transparent, #000 var(--fade)); mask-image: linear-gradient(to bottom, transparent, #000 var(--fade)); }
+.fade-bottom { -webkit-mask-image: linear-gradient(to top, transparent, #000 var(--fade)); mask-image: linear-gradient(to top, transparent, #000 var(--fade)); }
+.fade-top.fade-bottom {
+  -webkit-mask-image: linear-gradient(to bottom, transparent, #000 var(--fade), #000 calc(100% - var(--fade)), transparent);
+  mask-image: linear-gradient(to bottom, transparent, #000 var(--fade), #000 calc(100% - var(--fade)), transparent);
+}
+
+/* New Folder dialog (desktop Modal, 1233:11272) */
+.folder-dialog {
+  width: 100%;
+  border-radius: 16px;
+  background: var(--white);
+  box-shadow: 0 2px 5px rgba(0, 31, 82, 0.07), 0 12px 32px rgba(0, 31, 82, 0.12);
+  animation: pop 0.18s ease-out;
+}
+.folder-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; padding: 24px 24px 0; }
+.folder-head h2 { margin: 0; color: #1d1b20; font-size: 16px; font-weight: 600; line-height: 32px; }
+.folder-head .icon-btn { color: var(--grey-400); }
+.folder-dialog input {
+  display: block;
+  width: calc(100% - 48px);
+  height: 48px;
+  margin: 16px 24px 0;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 8px;
+  box-shadow: inset 0 0 0 1px #4d8fff;
+  outline: 0;
+  font-size: 16px;
+}
+.folder-actions { display: flex; justify-content: flex-end; gap: 8px; padding: 16px 24px 24px 8px; }
+.folder-actions .btn-secondary { color: var(--grey-500); }
+.folder-actions .btn-primary:disabled { background: var(--grey-400); cursor: default; }
 .convo-head {
   display: grid;
   grid-template-columns: 40px 1fr 40px;
@@ -483,11 +544,7 @@ button.avatar:focus-visible { outline: 2px solid var(--blue-500); outline-offset
   height: 72px;
   padding: 16px;
   border-bottom: 1px solid var(--divider);
-  position: sticky;
-  top: 0;
-  background: var(--grey-50);
-  border-radius: 24px 24px 0 0;
-  z-index: 1;
+  flex: none;
 }
 .convo-head h2 { margin: 0; text-align: center; color: var(--grey-600); font-size: 14px; font-weight: 600; line-height: 20px; }
 .convo-head .icon-btn { color: var(--grey-600); }

@@ -486,14 +486,14 @@
           </div>`;
     }
 
-    screen.innerHTML = `<div class="view convo-wrap">
-      <section class="convo" aria-label="Conversation">
+    screen.innerHTML = `<div class="view card-view">
+      <section class="card-panel convo" aria-label="Conversation">
         <div class="convo-head">
           <button class="icon-btn md" data-back aria-label="Back">${icon("arrow_back")}</button>
           <h2>Saved Items</h2>
           <button class="icon-btn md" data-soon="Conversation options" aria-label="More options">${icon("more_vert")}</button>
         </div>
-        <div class="convo-body" id="convo-body">
+        <div class="convo-body card-scroll" id="convo-body">
           ${titleBlock}
           ${convo.messages.map(renderMessage).join("")}
         </div>
@@ -527,7 +527,7 @@
       addFollowUp(convo, text);
     });
 
-    screen.scrollTop = 0;
+    wireFades();
   }
 
   function addFollowUp(convo, text) {
@@ -552,7 +552,8 @@
   }
 
   function scrollToEnd() {
-    requestAnimationFrame(() => screen.scrollTo({ top: screen.scrollHeight, behavior: "smooth" }));
+    const body = $("#convo-body");
+    requestAnimationFrame(() => body?.scrollTo({ top: body.scrollHeight, behavior: "smooth" }));
   }
 
   function syncSaveChips(convo) {
@@ -593,14 +594,20 @@
     }
     renderTopbar();
     const f = state.folders;
-    screen.innerHTML = `<div class="view chats">
+    screen.innerHTML = `<div class="view card-view">
+      <section class="card-panel" aria-label="Saved items">
+        <div class="card-head">
+          <span></span>
+          <h2>Saved Items</h2>
+          <button class="icon-btn md" data-new-folder aria-label="New folder">${icon("create_new_folder")}</button>
+        </div>
+        <div class="card-scroll chats">
       <ul class="tree" role="tree" aria-label="Chats">
         <li role="treeitem" aria-expanded="${!!f.open.mychats}">
           <div style="position:relative;display:flex;align-items:center">
             <button class="tree-row" data-toggle="mychats" aria-expanded="${!!f.open.mychats}">
               ${icon("arrow_right", "caret")}${icon("chat_bubble")}<span class="label">My Chats</span>
             </button>
-            <button class="icon-btn tail" data-new-folder aria-label="New folder" style="position:absolute;right:0">${icon("create_new_folder")}</button>
           </div>
           <ul class="group" ${f.open.mychats ? "" : "hidden"}>
             ${f.root.map((id) => convoRow(id)).join("")}
@@ -623,8 +630,11 @@
         <li><button class="tree-row plain" data-soon="Nothing shared with you yet">${icon("group")}<span class="label">Shared with me</span></button></li>
         <li><button class="tree-row plain" data-soon="Bin is empty">${icon("delete")}<span class="label">Bin</span></button></li>
       </ul>
+        </div>
+      </section>
     </div>`;
     state.justAdded = null;
+    wireFades();
   }
 
   function agentCard(a) {
@@ -652,6 +662,7 @@
         <ul class="agent-grid">${list.map(agentCard).join("")}</ul>
       </section>
     </div>`;
+    wireFades();
     const on = screen.querySelector(".cat-chip.is-on");
     if (on && cat !== "All") on.scrollIntoView({ block: "nearest", inline: "center" });
   }
@@ -679,7 +690,57 @@
     wrap.addEventListener("click", (e) => { if (e.target === wrap) closeAgent(); });
     wrap.querySelector(".agent-start").focus();
   }
-  function closeAgent() { $("#agent-modal")?.remove(); }
+  function closeAgent() { $("#agent-modal")?.remove(); $("#folder-modal")?.remove(); }
+
+  // "New Folder" dialog — same as desktop (Chat Page, node 1233:11272).
+  function openNewFolder() {
+    const wrap = document.createElement("div");
+    wrap.className = "modal-backdrop";
+    wrap.id = "folder-modal";
+    wrap.innerHTML = `<form class="folder-dialog" role="dialog" aria-modal="true" aria-labelledby="folder-title">
+      <div class="folder-head">
+        <h2 id="folder-title">New Folder</h2>
+        <button type="button" class="icon-btn" data-close-agent aria-label="Close">${icon("close")}</button>
+      </div>
+      <input name="name" value="Untitled Folder" maxlength="40" aria-label="Folder name" autocomplete="off">
+      <div class="folder-actions">
+        <button type="button" class="btn btn-secondary" data-close-agent>Cancel</button>
+        <button type="submit" class="btn btn-primary">OK</button>
+      </div>
+    </form>`;
+    $(".device").appendChild(wrap);
+    const form = wrap.querySelector("form");
+    const submit = form.querySelector("[type=submit]");
+    form.name.addEventListener("input", () => { submit.disabled = !form.name.value.trim(); });
+    form.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const name = form.name.value.trim();
+      if (!name) return;
+      const id = `f${Date.now()}`;
+      state.folders.folders.push({ id, name, items: [] });
+      state.folders.open.mychats = true;
+      state.folders.open[id] = true;
+      persist();
+      wrap.remove();
+      viewChats();
+      toast(`Folder "${name}" created`);
+    });
+    wrap.addEventListener("click", (e) => { if (e.target === wrap) wrap.remove(); });
+    form.name.focus();
+    form.name.select();
+  }
+
+  // Fades the top/bottom edge of an inner scroll area while more content is hidden there.
+  function wireFades() {
+    screen.querySelectorAll(".card-scroll, .agent-grid").forEach((el) => {
+      const update = () => {
+        el.classList.toggle("fade-top", el.scrollTop > 2);
+        el.classList.toggle("fade-bottom", el.scrollTop + el.clientHeight < el.scrollHeight - 2);
+      };
+      el.addEventListener("scroll", update, { passive: true });
+      update();
+    });
+  }
 
   // ── Auth: sign up, more details, first profile, login ─────
 
@@ -910,7 +971,7 @@
         <p class="um-label">Switch Profile</p>
         ${u.profiles.map((p, i) => `<button class="um-row${i === u.active ? " is-active" : ""}" role="menuitemradio" aria-checked="${i === u.active}" data-profile="${i}">
           <span class="avatar avatar-xs" style="background:${p.color}">${escapeHtml(nameInitials(p.name))}</span><span>${escapeHtml(p.name)}</span></button>`).join("")}
-        <button class="um-row" role="menuitem" data-new-profile><span class="um-ico">${icon("add")}</span><span>New Profile</span></button>
+        ${u.profiles.length < 3 ? `<button class="um-row" role="menuitem" data-new-profile><span class="um-ico">${icon("add")}</span><span>New Profile</span></button>` : ""}
       </div>
       <div class="um-section">
         <button class="um-row" role="menuitem" data-soon="Thanks! Feedback form coming soon"><span class="um-ico">${icon("mail")}</span><span>Leave Feedback</span></button>
@@ -968,7 +1029,6 @@
       return toast(`Switched to ${activeProfile().name}`);
     }
     if (t.hasAttribute("data-new-profile")) {
-      if (state.user.profiles.length >= 3) return toast("You can have up to 3 profiles");
       inlineEdit(t, "", (name) => {
         if (name) {
           state.user.profiles.push({ name, color: PROFILE_COLORS[state.user.profiles.length % 3] });
@@ -1083,16 +1143,7 @@
       return;
     }
 
-    if (t.hasAttribute("data-new-folder")) {
-      const n = state.folders.folders.length + 1;
-      const id = `f${Date.now()}`;
-      state.folders.folders.push({ id, name: `New Folder ${n}`, items: [] });
-      state.folders.open.mychats = true;
-      state.folders.open[id] = true;
-      persist();
-      viewChats();
-      return toast("Folder created");
-    }
+    if (t.hasAttribute("data-new-folder")) return openNewFolder();
 
     const bubble = t.closest(".bubble");
     if (bubble) {
