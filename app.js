@@ -216,16 +216,29 @@
     tax: { id: "tax", model: "gemini", title: "Tax in Australia", messages: [
       { from: "ai", html: "<p>The Australian financial year runs from <strong>1 July to 30 June</strong>. Individual tax returns are due by 31 October if you lodge yourself, or later if you use a registered tax agent.</p>" },
     ], saved: true },
+    party: { id: "party", kind: "message", model: "openai", title: "Checklist for party", messages: [
+      { from: "ai", html: "<p>Here's how to throw the perfect surprise birthday party:</p><h4>Planning the Basics</h4><p>Choose a date and time close to the guest of honor's actual birthday, but consider picking a day slightly before to maximize the surprise element. Select a venue that fits the party size and theme — this could be your home, a rented space, or even an outdoor location.</p><h4>Keeping it Secret</h4><p>Enlist help from close friends and family to maintain the surprise. Create a believable \"cover story\" to explain any suspicious behavior or to get the guest of honor to the party location. Be careful with social media posts that could tip off the birthday person.</p><h4>Invitations and Guest List</h4><p>Send invitations privately, at least two weeks ahead, and ask guests to arrive 30 minutes before the guest of honor.</p>" },
+    ], saved: true },
+    filter: { id: "filter", kind: "message", model: "perplexity", title: "Use FILTER with criteria range", messages: [
+      { from: "ai", html: "<p>Use <strong>FILTER</strong> to return every row that matches a condition:</p><p><code>=FILTER(A2:C100, (B2:B100=\"Invoice\")*(C2:C100&gt;500))</code></p><p>Multiply conditions for AND, add them for OR. The result spills automatically, so leave room below the formula.</p>" },
+    ], saved: true },
     excel2: { id: "excel2", model: "perplexity", title: "Excel Formula Tips", messages: [
       { from: "ai", html: "<p>To sum values that meet a condition, use <strong>SUMIFS</strong>, e.g. <code>=SUMIFS(C:C, A:A, \"Invoice\", B:B, \"&gt;=1/7/2024\")</code>.</p>" },
     ], saved: true },
   });
 
   const seedFolders = () => ({
-    root: ["ds", "excel1"],
-    folders: [{ id: "accounting", name: "Accounting Project", items: ["tax", "excel2"] }],
-    open: { mychats: true, accounting: true },
+    root: ["ds", "excel1", "party"],
+    folders: [{ id: "accounting", name: "Accounting Project", items: ["filter", "tax", "excel2"] }],
   });
+
+  // Bump when seed data changes; `?reset` in the URL also restores it (handy between video takes).
+  const DATA_VERSION = 2;
+  if (location.search.includes("reset") || store.get("iio.v", 0) !== DATA_VERSION) {
+    ["iio.conversations", "iio.folders", "iio.user", "iio.tipOff"].forEach((k) => { try { localStorage.removeItem(k); } catch { /* ignore */ } });
+    store.set("iio.v", DATA_VERSION);
+    if (location.search.includes("reset")) history.replaceState(null, "", location.pathname + location.hash);
+  }
 
   const state = {
     signedIn: false, // every visit starts logged out
@@ -469,7 +482,15 @@
     }
     renderTopbar();
     let titleBlock;
-    if (convo.agent) {
+    if (convo.kind === "message") {
+      titleBlock = `<div class="convo-title agent-title">
+            <span class="saved-star" aria-hidden="true">${icon("star", "fill")}</span>
+            <div>
+              <div class="title-row"><h3 id="convo-name">${escapeHtml(convo.title)}</h3><button class="icon-btn" data-rename aria-label="Rename">${icon("edit")}</button></div>
+              <span class="agent-by">Saved message</span>
+            </div>
+          </div>`;
+    } else if (convo.agent) {
       const a = agentByKey(convo.agent);
       titleBlock = `<div class="convo-title agent-title">
             ${agentTile(a, 32)}
@@ -490,7 +511,7 @@
       <section class="card-panel convo" aria-label="Conversation">
         <div class="convo-head">
           <button class="icon-btn md" data-back aria-label="Back">${icon("arrow_back")}</button>
-          <h2>Saved Items</h2>
+          <h2>${escapeHtml(convo.title)}</h2>
           <button class="icon-btn md" data-soon="Conversation options" aria-label="More options">${icon("more_vert")}</button>
         </div>
         <div class="convo-body card-scroll" id="convo-body">
@@ -501,8 +522,18 @@
     </div>`;
     syncSaveChips(convo);
 
+    if (convo.kind === "message") {
+      screen.querySelectorAll(".bubble-actions").forEach((a) => a.remove());
+      wireFades();
+      return;
+    }
     const guest = !state.signedIn;
-    setDock(`<div class="input-dock${guest ? " guest" : ""}">
+    const showTip = state.signedIn && !state.tipHidden && !store.get("iio.tipOff", false);
+    setDock(`${showTip ? `<div class="tip" role="status">
+        <div><p>Switch to the Search tab to keep comparing.</p>
+        <label class="tip-check"><input type="checkbox" id="tip-off">Don’t show this again</label></div>
+        <button class="tip-hide" data-hide-tip>Hide</button>
+      </div>` : ""}<div class="input-dock${guest ? " guest" : ""}">
       <form class="composer" id="composer">
         <input name="msg" placeholder="${convo.agent && !convo.messages.length ? `Message ${escapeHtml(agentByKey(convo.agent).name)}` : "Type your follow-up question"}" aria-label="Follow-up question" autocomplete="off" enterkeyhint="send">
         <button class="send" type="submit" aria-label="Send" disabled>${icon("arrow_forward")}</button>
@@ -575,61 +606,51 @@
     if (!quiet) toast("Saved to My Chats");
   }
 
-  function convoRow(id, cls = "leaf") {
+  function itemIcon(c) {
+    if (c.kind === "message") return `<span class="row-ico star">${icon("star", "fill")}</span>`;
+    if (c.agent) return agentTile(agentByKey(c.agent), 20);
+    return `<img class="conv-icon" src="${modelByKey(c.model).icon}" alt="" width="20" height="20">`;
+  }
+
+  function savedRow(id) {
     const c = state.conversations[id];
     if (!c) return "";
     const isNew = state.justAdded === id;
-    const iconHtml = c.agent ? agentTile(agentByKey(c.agent), 20) : `<img class="conv-icon" src="${modelByKey(c.model).icon}" alt="" width="20" height="20">`;
-    return `<li><a class="tree-row ${cls}${isNew ? " is-new" : ""}" href="#/chat/${id}">
-      ${iconHtml}
-      <span class="label">${escapeHtml(c.title)}</span>
-    </a></li>`;
+    return `<li class="srow${isNew ? " is-new" : ""}"><a class="srow-main" href="#/chat/${id}">${itemIcon(c)}<span class="label">${escapeHtml(c.title)}</span></a>
+      <button class="icon-btn srow-more" data-soon="Options for “${escapeHtml(c.title)}”" aria-label="More options">${icon("more_vert")}</button></li>`;
   }
 
-  function viewChats() {
+  function folderRow(f) {
+    return `<li class="srow"><a class="srow-main" href="#/chats/folder/${f.id}"><span class="row-ico">${icon("folder")}</span><span class="label">${escapeHtml(f.name)}</span></a>
+      <button class="icon-btn srow-more" data-soon="Folder options" aria-label="Folder options">${icon("more_vert")}</button></li>`;
+  }
+
+  // Saved Items — flat list; folders open as their own page (Chat Page › Mobile optimisation).
+  function viewChats(folderId) {
     if (!state.signedIn) {
       go("#/");
       openGate("Sign in to see your saved chats", "Save answers from any AI model and organise them into folders.");
       return;
     }
     renderTopbar();
-    const f = state.folders;
+    const F = state.folders;
+    const folder = folderId && F.folders.find((f) => f.id === folderId);
+    if (folderId && !folder) return go("#/chats");
+    const rows = folder
+      ? folder.items.map(savedRow).join("") || `<li class="srow-empty">This folder is empty</li>`
+      : F.root.map(savedRow).join("") + F.folders.map(folderRow).join("");
     screen.innerHTML = `<div class="view card-view">
-      <section class="card-panel" aria-label="Saved items">
+      <section class="card-panel" aria-label="${folder ? escapeHtml(folder.name) : "Saved items"}">
         <div class="card-head">
-          <span></span>
-          <h2>Saved Items</h2>
-          <button class="icon-btn md" data-new-folder aria-label="New folder">${icon("create_new_folder")}</button>
+          ${folder ? `<a class="icon-btn md" href="#/chats" aria-label="Back to Saved Items">${icon("arrow_back")}</a>` : "<span></span>"}
+          <h2>${folder ? escapeHtml(folder.name) : "Saved Items"}</h2>
+          ${folder
+            ? `<button class="icon-btn md" data-soon="Folder options" aria-label="Folder options">${icon("more_vert")}</button>`
+            : `<button class="icon-btn md" data-new-folder aria-label="New folder">${icon("create_new_folder")}</button>`}
         </div>
-        <div class="card-scroll chats">
-      <ul class="tree" role="tree" aria-label="Chats">
-        <li role="treeitem" aria-expanded="${!!f.open.mychats}">
-          <div style="position:relative;display:flex;align-items:center">
-            <button class="tree-row" data-toggle="mychats" aria-expanded="${!!f.open.mychats}">
-              ${icon("arrow_right", "caret")}${icon("chat_bubble")}<span class="label">My Chats</span>
-            </button>
-          </div>
-          <ul class="group" ${f.open.mychats ? "" : "hidden"}>
-            ${f.root.map((id) => convoRow(id)).join("")}
-            ${f.folders.map((folder) => `
-              <li role="treeitem" aria-expanded="${!!f.open[folder.id]}">
-                <div style="position:relative;display:flex;align-items:center">
-                  <button class="tree-row sub" data-toggle="${folder.id}" aria-expanded="${!!f.open[folder.id]}">
-                    ${icon("arrow_right", "caret")}${icon("folder")}<span class="label">${escapeHtml(folder.name)}</span>
-                  </button>
-                  <button class="icon-btn tail" data-soon="Folder options" aria-label="Folder options" style="position:absolute;right:0">${icon("more_vert")}</button>
-                </div>
-                <ul class="group tree-sub" ${f.open[folder.id] ? "" : "hidden"}>
-                  ${folder.items.map((id) => convoRow(id)).join("") || `<li class="tree-row leaf" style="color:var(--grey-500);font-size:14px">Empty folder</li>`}
-                </ul>
-              </li>`).join("")}
-          </ul>
-        </li>
-      </ul>
-      <ul class="tree">
-        <li><button class="tree-row plain" data-soon="Nothing shared with you yet">${icon("group")}<span class="label">Shared with me</span></button></li>
-        <li><button class="tree-row plain" data-soon="Bin is empty">${icon("delete")}<span class="label">Bin</span></button></li>
-      </ul>
+        <div class="card-scroll saved-list">
+          <div class="srow-head"><span>Name</span><button class="icon-btn srow-more" data-soon="Sort options" aria-label="Sort options">${icon("more_vert")}</button></div>
+          <ul>${rows}</ul>
         </div>
       </section>
     </div>`;
@@ -718,8 +739,6 @@
       if (!name) return;
       const id = `f${Date.now()}`;
       state.folders.folders.push({ id, name, items: [] });
-      state.folders.open.mychats = true;
-      state.folders.open[id] = true;
       persist();
       wrap.remove();
       viewChats();
@@ -730,14 +749,22 @@
     form.name.select();
   }
 
-  // Fades the top/bottom edge of an inner scroll area while more content is hidden there.
+  // Card-coloured gradients over the top/bottom edge of an inner scroll area while content is hidden there.
   function wireFades() {
     screen.querySelectorAll(".card-scroll, .agent-grid").forEach((el) => {
+      const panel = el.parentElement;
+      const top = document.createElement("div");
+      const bottom = document.createElement("div");
+      top.className = "edge-fade top";
+      bottom.className = "edge-fade bottom";
+      top.style.top = `${el.offsetTop}px`;
+      panel.append(top, bottom);
       const update = () => {
-        el.classList.toggle("fade-top", el.scrollTop > 2);
-        el.classList.toggle("fade-bottom", el.scrollTop + el.clientHeight < el.scrollHeight - 2);
+        top.classList.toggle("on", el.scrollTop > 2);
+        bottom.classList.toggle("on", el.scrollTop + el.clientHeight < el.scrollHeight - 2);
       };
       el.addEventListener("scroll", update, { passive: true });
+      new ResizeObserver(update).observe(el);
       update();
     });
   }
@@ -923,7 +950,7 @@
       case "results": viewResults(params); setActiveTab("search"); break;
       case "answer": viewAnswer(arg, params); setActiveTab("search"); break;
       case "chat": viewChat(arg, params); setActiveTab("chats"); break;
-      case "chats": viewChats(); setActiveTab("chats"); break;
+      case "chats": viewChats(parts[1] === "folder" ? parts[2] : null); setActiveTab("chats"); break;
       case "explore": viewExplore(); setActiveTab("explore"); break;
       default: viewHome(); setActiveTab("search");
     }
@@ -1131,19 +1158,14 @@
       return openGate("Sign in to see your saved chats", "Save answers from any AI model and organise them into folders.");
     }
 
-    if (t.dataset.toggle) {
-      const key = t.dataset.toggle;
-      state.folders.open[key] = !state.folders.open[key];
-      persist();
-      const li = t.closest("[role=treeitem]");
-      const group = li.querySelector(":scope > .group");
-      group.hidden = !state.folders.open[key];
-      t.setAttribute("aria-expanded", state.folders.open[key]);
-      li.setAttribute("aria-expanded", state.folders.open[key]);
-      return;
-    }
 
     if (t.hasAttribute("data-new-folder")) return openNewFolder();
+    if (t.hasAttribute("data-hide-tip")) {
+      state.tipHidden = true;
+      if ($("#tip-off")?.checked) store.set("iio.tipOff", true);
+      $(".tip")?.remove();
+      return;
+    }
 
     const bubble = t.closest(".bubble");
     if (bubble) {

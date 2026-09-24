@@ -502,14 +502,65 @@ button.avatar:focus-visible { outline: 2px solid var(--blue-500); outline-offset
 .card-head h2 { margin: 0; text-align: center; color: var(--grey-600); font-size: 14px; font-weight: 600; line-height: 20px; }
 .card-head .icon-btn { color: var(--grey-600); }
 
-/* Overflow fades — shown only on the edge that has hidden content */
-.card-scroll, .agent-grid { --fade: 32px; }
-.fade-top { -webkit-mask-image: linear-gradient(to bottom, transparent, #000 var(--fade)); mask-image: linear-gradient(to bottom, transparent, #000 var(--fade)); }
-.fade-bottom { -webkit-mask-image: linear-gradient(to top, transparent, #000 var(--fade)); mask-image: linear-gradient(to top, transparent, #000 var(--fade)); }
-.fade-top.fade-bottom {
-  -webkit-mask-image: linear-gradient(to bottom, transparent, #000 var(--fade), #000 calc(100% - var(--fade)), transparent);
-  mask-image: linear-gradient(to bottom, transparent, #000 var(--fade), #000 calc(100% - var(--fade)), transparent);
+/* Overflow fades — card-coloured gradient on the edge that has hidden content */
+.card-panel, .agents-panel { position: relative; }
+.edge-fade {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 36px;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.2s;
+  z-index: 1;
 }
+.edge-fade.top { background: linear-gradient(var(--grey-50), rgba(248, 248, 248, 0)); }
+.edge-fade.bottom { bottom: 0; background: linear-gradient(rgba(248, 248, 248, 0), var(--grey-50)); }
+.edge-fade.on { opacity: 1; }
+
+/* Saved Items list (Chat Page › Mobile optimisation) */
+.saved-list { padding: 12px; }
+.saved-list ul { margin: 0; padding: 0; list-style: none; }
+.srow-head, .srow { display: flex; align-items: center; gap: 8px; border-bottom: 1px solid var(--grey-300); }
+.srow-head { padding: 0 8px 0 12px; min-height: 34px; color: var(--grey-600); font-size: 12px; font-weight: 500; line-height: 18px; }
+.srow-head span { flex: 1; }
+.srow { min-height: 48px; padding-right: 8px; transition: background-color 0.15s; }
+.srow:hover { background: rgba(220, 220, 220, 0.25); }
+.srow.is-new { animation: flash 1.4s ease-out; }
+.srow-main { flex: 1; min-width: 0; display: flex; align-items: center; gap: 8px; padding: 12px; color: var(--grey-700); font-size: 14px; line-height: 20px; }
+.srow-main .label { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.srow-more { width: 24px; height: 24px; color: var(--grey-400); }
+.srow-more .ms { font-size: 18px; }
+.row-ico { display: grid; place-items: center; width: 20px; height: 20px; flex: none; color: var(--grey-600); }
+.row-ico .ms { font-size: 20px; }
+.row-ico.star { color: var(--grey-600); }
+.srow-empty { padding: 24px 12px; color: var(--grey-500); font-size: 14px; }
+.saved-star { display: grid; place-items: center; width: 36px; height: 36px; flex: none; color: var(--grey-600); }
+.saved-star .ms { font-size: 32px; }
+
+/* Dismissible tip above the input (Chat Page › Mobile optimisation) */
+.dock { position: relative; }
+.tip {
+  position: absolute;
+  left: 16px;
+  right: 16px;
+  bottom: calc(100% + 8px);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  border-radius: 16px;
+  background: var(--navy-900);
+  color: var(--white);
+  z-index: 3;
+  animation: pop 0.2s ease-out;
+}
+.tip > div { flex: 1; }
+.tip p { margin: 0 0 8px; font-size: 12px; font-weight: 500; line-height: 18px; }
+.tip-check { display: flex; align-items: center; gap: 6px; color: var(--grey-150); font-size: 10px; line-height: 14px; cursor: pointer; }
+.tip-check input { width: 14px; height: 14px; margin: 0; accent-color: var(--blue-500); }
+.tip-hide { padding: 4px 8px; border-radius: 32px; color: var(--blue-500); font-size: 12px; font-weight: 600; line-height: 18px; }
+.tip-hide:hover { background: rgba(255, 255, 255, 0.08); }
 
 /* New Folder dialog (desktop Modal, 1233:11272) */
 .folder-dialog {
@@ -546,7 +597,7 @@ button.avatar:focus-visible { outline: 2px solid var(--blue-500); outline-offset
   border-bottom: 1px solid var(--divider);
   flex: none;
 }
-.convo-head h2 { margin: 0; text-align: center; color: var(--grey-600); font-size: 14px; font-weight: 600; line-height: 20px; }
+.convo-head h2 { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding: 0 8px; margin: 0; text-align: center; color: var(--grey-600); font-size: 14px; font-weight: 600; line-height: 20px; }
 .convo-head .icon-btn { color: var(--grey-600); }
 .convo-body { display: flex; flex-direction: column; gap: 16px; padding: 12px; }
 .convo-title { display: flex; gap: 12px; }
