@@ -11,7 +11,7 @@ A clickable mobile prototype of **internet.io**, a search product that asks seve
 - **Signed out vs signed in:** start as a guest (Login / Sign up, one free follow-up, sign-up banner). Sign in from the sheet to unlock Chats, saving and unlimited follow-ups. Sign out from the avatar menu.
 - **Chats:** folder tree with expandable folders, new folders and saved conversations.
 
-Best viewed on a phone, or in a desktop browser where it renders inside a device frame.
+Best viewed on a phone, or in a desktop browser where it renders at iPhone size with an iOS status bar and home indicator.
 
 ## Stack
 
