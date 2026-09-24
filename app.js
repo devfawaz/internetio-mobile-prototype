@@ -1572,7 +1572,7 @@
     if (t.hasAttribute("data-new-folder")) return openNewFolder();
     if (t.hasAttribute("data-close-modal")) return closeModal();
     if (t.dataset.open === "reorder" || t.dataset.open === "prompts") {
-      if (!state.signedIn) return openGate(t.dataset.open === "reorder" ? "Sign in to reorder AI models" : "Sign in to use custom prompts", "Personalise how answers are ordered and written with a free account.");
+      if (!state.signedIn) return openGate(t.dataset.open === "reorder" ? "Sign in to reorder AI models" : "Sign in to use custom prompts", "Personalize how answers are ordered and written with a free account.");
       return t.dataset.open === "reorder" ? openReorder() : openPrompts();
     }
     if (t.dataset.rowMenu) {
