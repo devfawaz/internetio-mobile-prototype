@@ -479,8 +479,8 @@
     const next = list[idx + 1];
     setDock(`<div class="pager-dock">
       <div class="pager">
-        <button class="btn prev" ${prev ? `data-go="#/answer/${prev.key}?q=${encodeURIComponent(q)}"` : "disabled"} aria-label="Previous answer">${icon("chevron_left")}Prev</button>
-        <button class="btn next" ${next ? `data-go="#/answer/${next.key}?q=${encodeURIComponent(q)}"` : "disabled"} aria-label="Next answer">Next${icon("chevron_right")}</button>
+        <button class="btn prev" ${prev ? `data-go="#/answer/${prev.key}?q=${encodeURIComponent(q)}"` : "disabled"} aria-label="Previous answer">${icon("chevron_left")}</button>
+        <button class="btn next" ${next ? `data-go="#/answer/${next.key}?q=${encodeURIComponent(q)}"` : "disabled"} aria-label="Next answer">${icon("chevron_right")}</button>
       </div>
       <button class="btn btn-primary" data-go="#/chat/new?m=${m.key}">Ask follow-up${icon("arrow_forward")}</button>
     </div>`);

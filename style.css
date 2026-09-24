@@ -1473,3 +1473,6 @@ button.avatar:focus-visible { outline: 2px solid var(--blue-500); outline-offset
 
 /* Focus indicator: M3 3dp outline */
 :is(.btn, .icon-btn, .tab, .result, .srow-main, .chip, .cat-chip, .agent-card, .um-row, .pick-row):focus-visible { outline: 3px solid var(--md-primary); outline-offset: 2px; }
+/* Prev / Next as icon-only connected buttons */
+.pager .prev, .pager .next { width: 56px; padding: 0; }
+.pager .btn .ms { font-size: 24px; }
