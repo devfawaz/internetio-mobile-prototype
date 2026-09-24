@@ -140,8 +140,18 @@
       <li><strong>Day 10:</strong> Publish the Figma library, share the Confluence page and gather feedback from one product team.</li>
     </ol>`;
 
+  const ADOPTION_ANSWER = `
+    <p>Adoption is where most design systems succeed or stall. What works for small teams:</p>
+    <ol>
+      <li><strong>Start with one product team:</strong> Pair with them on a real feature and fix what slows them down.</li>
+      <li><strong>Make the easy path the right path:</strong> Publish the Figma library and components so using the system is faster than not using it.</li>
+      <li><strong>Show progress:</strong> Share a short changelog every two weeks with before and after screenshots.</li>
+      <li><strong>Collect feedback in one place:</strong> A single Slack channel or form keeps requests visible.</li>
+    </ol>
+    <p>Want a template for the changelog?</p>`;
+
   const FOLLOW_UP_ANSWER = (q) => `
-    <p>Good question. Building on the answer above, here's how to think about <strong>${escapeHtml(q.replace(/\?+$/, ""))}</strong>:</p>
+    <p>Building on the answer above, here's a practical way to approach <strong>${escapeHtml(q.replace(/\?+$/, ""))}</strong>:</p>
     <ol>
       <li><strong>Start small:</strong> Focus on the pieces your team uses most often and document them well.</li>
       <li><strong>Make it shared:</strong> Keep design and code in sync so everyone works from the same source of truth.</li>
@@ -149,7 +159,7 @@
     </ol>
     <p>Want me to turn this into a checklist you can share with your team?</p>`;
 
-  const AGENT_ANSWER = (a, q) => `
+  const AGENT_ANSWER = (a, q) => a.reply && a.demo && q.trim().toLowerCase() === a.demo.toLowerCase() ? a.reply : `
     <p>Happy to help. I'm <strong>${escapeHtml(a.name)}</strong>. Here's how I'd tackle <strong>${escapeHtml(q.replace(/\?+$/, ""))}</strong>:</p>
     <ol>
       <li><strong>Clarify the goal:</strong> What does a great result look like, and who is it for?</li>
@@ -162,19 +172,19 @@
   // invented placeholders; icons are Material Symbols on tinted tiles.
   const AGENT_CATEGORIES = ["All", "Marketing", "Sales", "Education", "Productivity", "Data Analysis", "Finance", "Writing", "Programming"];
   const AGENTS = [
-    { key: "code-master", name: "Code Master", by: "John Doe", cat: "Programming", icon: "code", bg: "#e8f0fe", fg: "#1b51aa", rating: "4.8", convos: "12K+",
+    { key: "code-master", demo: "Why does my loop skip items when I remove them from a list?", reply: `<p>Removing items while you loop over the same list shifts every later item one place to the left, so the loop jumps over the next one.</p><p>Loop over a copy, or build a new list instead:</p><p><code>items = [x for x in items if not should_remove(x)]</code></p><p>This keeps the original order and never skips anything.</p>`, name: "Code Master", by: "John Doe", cat: "Programming", icon: "code", bg: "#e8f0fe", fg: "#1b51aa", rating: "4.8", convos: "12K+",
       text: "Writes, explains and debugs Python. Paste an error and get a fix with the reasoning behind it." },
-    { key: "campaign-crafter", name: "Campaign Crafter", by: "Maya Chen", cat: "Marketing", icon: "campaign", bg: "#fff8bb", fg: "#b4a200", rating: "4.6", convos: "8.4K",
+    { key: "campaign-crafter", demo: "Plan a launch campaign for a fitness app", reply: `<p>Here's a 3-week launch plan:</p><ol><li><strong>Week 1, tease:</strong> Short Reels showing one workout, with a waitlist link.</li><li><strong>Week 2, proof:</strong> Share results from 10 beta users and a founder story.</li><li><strong>Week 3, launch:</strong> Launch-day email, a 7-day free trial and creator partnerships.</li></ol><p>Want copy for the launch email?</p>`, name: "Campaign Crafter", by: "Maya Chen", cat: "Marketing", icon: "campaign", bg: "#fff8bb", fg: "#b4a200", rating: "4.6", convos: "8.4K",
       text: "Plans multi-channel campaigns and writes on-brand copy for every channel, from ads to launch emails." },
     { key: "deal-closer", name: "Deal Closer", by: "Ravi Patel", cat: "Sales", icon: "handshake", bg: "#e6f4ea", fg: "#1e8e3e", rating: "4.5", convos: "5.1K",
       text: "Drafts follow-up emails, handles objections and preps talking points before every sales call." },
-    { key: "study-buddy", name: "Study Buddy", by: "Lena Ortiz", cat: "Education", icon: "school", bg: "#fce8f3", fg: "#c2185b", rating: "4.9", convos: "21K+",
+    { key: "study-buddy", demo: "Quiz me on photosynthesis", reply: `<p>Let's start easy. <strong>Question 1 of 5:</strong></p><p>Where in the plant cell does photosynthesis happen?</p><ol><li>Mitochondria</li><li>Chloroplasts</li><li>Nucleus</li></ol><p>Reply with 1, 2 or 3.</p>`, name: "Study Buddy", by: "Lena Ortiz", cat: "Education", icon: "school", bg: "#fce8f3", fg: "#c2185b", rating: "4.9", convos: "21K+",
       text: "Turns any topic into flashcards, practice quizzes and plain-English explanations." },
     { key: "focus-planner", name: "Focus Planner", by: "Sam Okafor", cat: "Productivity", icon: "bolt", bg: "#fff3e0", fg: "#e65100", rating: "4.7", convos: "9.8K",
       text: "Breaks big goals into a realistic daily plan and nudges you back on track when things slip." },
     { key: "chart-whisperer", name: "Chart Whisperer", by: "Priya Nair", cat: "Data Analysis", icon: "insights", bg: "#e0f7fa", fg: "#00838f", rating: "4.6", convos: "6.2K",
       text: "Explains spreadsheets, spots trends and recommends the right chart for your data." },
-    { key: "budget-buddy", name: "Budget Buddy", by: "Tom Walsh", cat: "Finance", icon: "savings", bg: "#ede7f6", fg: "#5e35b1", rating: "4.4", convos: "3.9K",
+    { key: "budget-buddy", demo: "Help me build a monthly budget on $4,000", reply: `<p>Using the 50/30/20 rule on $4,000:</p><ol><li><strong>Needs, $2,000:</strong> Rent, groceries, bills and transport.</li><li><strong>Wants, $1,200:</strong> Eating out, subscriptions and hobbies.</li><li><strong>Savings, $800:</strong> Emergency fund first, then investing.</li></ol><p>Tell me your rent and I'll fine-tune it.</p>`, name: "Budget Buddy", by: "Tom Walsh", cat: "Finance", icon: "savings", bg: "#ede7f6", fg: "#5e35b1", rating: "4.4", convos: "3.9K",
       text: "Builds monthly budgets, sorts your spending into categories and explains tax basics simply." },
     { key: "story-spark", name: "Story Spark", by: "Aiko Tanaka", cat: "Writing", icon: "edit_note", bg: "#ffebee", fg: "#c62828", rating: "4.8", convos: "15K+",
       text: "Brainstorms plots, sharpens dialogue and fixes pacing in your short stories and scripts." },
@@ -246,6 +256,7 @@
     signup: {},
     returnTo: "#/",
     exploreCat: "All",
+    exploreQuery: "",
     conversations: store.get("iio.conversations", null) || seedConversations(),
     folders: store.get("iio.folders", null) || seedFolders(),
     guestQuestions: 0,
@@ -322,6 +333,28 @@
   }
 
   const go = (hash) => { location.hash = hash; };
+
+  // Types example queries into an input's placeholder, one after another. Stops while
+  // the field is focused or filled; static when the user prefers reduced motion.
+  let typeTimer = null;
+  function typewriter(input, examples) {
+    clearTimeout(typeTimer);
+    const base = input.getAttribute("placeholder");
+    if (matchMedia("(prefers-reduced-motion: reduce)").matches) { input.placeholder = examples[0]; return; }
+    let i = 0, n = 0, deleting = false;
+    const tick = () => {
+      if (!input.isConnected) return;
+      if (document.activeElement === input || input.value) { input.placeholder = base; typeTimer = setTimeout(tick, 600); return; }
+      const text = examples[i % examples.length];
+      n += deleting ? -1 : 1;
+      input.placeholder = text.slice(0, n) || base;
+      let delay = deleting ? 28 : 55;
+      if (!deleting && n >= text.length) { deleting = true; delay = 1800; }
+      else if (deleting && n <= 0) { deleting = false; i++; delay = 350; }
+      typeTimer = setTimeout(tick, delay);
+    };
+    typeTimer = setTimeout(tick, 700);
+  }
 
   // Guests can ask 5 questions (searches and follow-ups) before sign-up is required.
   const GUEST_LIMIT = 5;
@@ -414,10 +447,7 @@
       go(`#/results?q=${encodeURIComponent(q)}`);
     });
     // Tapping into an empty field pre-fills the demo query so the flow is one tap away.
-    form.q.addEventListener("focus", () => {
-      if (!form.q.value) form.q.placeholder = DEFAULT_QUERY;
-    });
-    form.q.addEventListener("blur", () => { form.q.placeholder = "What do you want to know?"; });
+    typewriter(form.q, ["What is a design system?", "Compare Figma variables and styles", "How do I learn SQL in 30 days?", "Plan a surprise party for 20 people"]);
   }
 
   function resultItem(m, i) {
@@ -582,7 +612,7 @@
         <button class="tip-hide" data-hide-tip>Hide</button>
       </div>` : ""}<div class="input-dock${guest ? " guest" : ""}">
       <form class="composer" id="composer">
-        <input name="msg" placeholder="${convo.agent && !convo.messages.length ? `Message ${escapeHtml(agentByKey(convo.agent).name)}` : "Type your follow-up question"}" aria-label="Follow-up question" autocomplete="off" enterkeyhint="send">
+        <input name="msg" placeholder="${convo.agent && !convo.messages.length ? `Message ${escapeHtml(agentByKey(convo.agent).name)}` : "Type your follow-up question"}" aria-label="Follow-up question" autocomplete="off" enterkeyhint="send" ${convo.agent && !convo.messages.length ? `data-demo="${escapeHtml(agentByKey(convo.agent).demo || "")}"` : ""}>
         <button class="send" type="submit" aria-label="Send" disabled>${icon("arrow_forward")}</button>
       </form>
       ${guest ? `<div class="signup-banner"><p>Sign up now to save, organize &amp; ask unlimited follow-ups.</p><button class="btn btn-primary" data-auth="signup">Get started</button></div>` : ""}
@@ -590,6 +620,7 @@
 
     const form = $("#composer");
     const send = form.querySelector(".send");
+    if (form.msg.dataset.demo) typewriter(form.msg, [form.msg.dataset.demo]);
     form.msg.addEventListener("input", () => { send.disabled = !form.msg.value.trim(); });
     form.addEventListener("submit", (e) => {
       e.preventDefault();
@@ -616,7 +647,8 @@
 
     setTimeout(() => {
       const isPlan = /plan|2 weeks|two weeks|figma|confluence/i.test(text);
-      const msg = { from: "ai", html: convo.agent ? AGENT_ANSWER(agentByKey(convo.agent), text) : isPlan ? PLAN_ANSWER : FOLLOW_UP_ANSWER(text) };
+      const isAdoption = /adopt|team.*use|get .*team|buy-in/i.test(text);
+      const msg = { from: "ai", html: convo.agent ? AGENT_ANSWER(agentByKey(convo.agent), text) : isPlan ? PLAN_ANSWER : isAdoption ? ADOPTION_ANSWER : FOLLOW_UP_ANSWER(text) };
       convo.messages.push(msg);
       typingEl.outerHTML = renderMessage(msg);
       syncSaveChips(convo);
@@ -712,21 +744,47 @@
     </button></li>`;
   }
 
+  function filteredAgents() {
+    const q = (state.exploreQuery || "").trim().toLowerCase();
+    return AGENTS.filter((a) => (state.exploreCat === "All" || a.cat === state.exploreCat)
+      && (!q || `${a.name} ${a.by} ${a.cat} ${a.text}`.toLowerCase().includes(q)));
+  }
+  const agentListHtml = (list) => list.length
+    ? list.map(agentCard).join("")
+    : `<li class="agent-empty">${icon("search_off")}<p>No agents match “${escapeHtml(state.exploreQuery || "")}”${state.exploreCat !== "All" ? ` in ${state.exploreCat}` : ""}.</p><button class="btn btn-text" data-agent-reset>Clear filters</button></li>`;
+
   function viewExplore() {
     renderTopbar();
     const cat = state.exploreCat;
-    const list = AGENTS.filter((a) => cat === "All" || a.cat === cat);
+    const list = filteredAgents();
     screen.innerHTML = `<div class="view explore">
       <section class="agents-panel" aria-label="AI agents">
         <div class="agents-head">
+          <form class="searchbar agent-search" role="search" id="agent-search">
+            <span class="icon-btn lead" aria-hidden="true">${icon("search")}</span>
+            <input type="search" name="q" value="${escapeHtml(state.exploreQuery || "")}" placeholder="Search agents" aria-label="Search agents" autocomplete="off" enterkeyhint="search">
+            <button type="button" class="icon-btn" data-agent-clear aria-label="Clear search" ${state.exploreQuery ? "" : "hidden"}>${icon("close")}</button>
+          </form>
           <div class="cat-chips" role="tablist" aria-label="Categories">
             ${AGENT_CATEGORIES.map((c) => `<button class="cat-chip${c === cat ? " is-on" : ""}" role="tab" aria-selected="${c === cat}" data-cat="${c}">${c}</button>`).join("")}
           </div>
         </div>
-        <ul class="agent-grid">${list.map(agentCard).join("")}</ul>
+        <ul class="agent-grid" id="agent-grid">${agentListHtml(list)}</ul>
       </section>
     </div>`;
     wireFades();
+    const form = $("#agent-search");
+    const clear = form.querySelector("[data-agent-clear]");
+    form.addEventListener("submit", (e) => { e.preventDefault(); form.q.blur(); });
+    form.q.addEventListener("input", () => {
+      state.exploreQuery = form.q.value;
+      clear.hidden = !form.q.value;
+      $("#agent-grid").innerHTML = agentListHtml(filteredAgents());
+      $("#agent-grid").scrollTop = 0;
+      $("#agent-grid").dispatchEvent(new Event("scroll"));
+    });
+    clear.addEventListener("click", () => { form.q.value = ""; form.q.dispatchEvent(new Event("input")); form.q.focus({ preventScroll: true }); });
+    typewriter(form.q, ["Search agents", "Try “Python”", "Try “budget”", "Try “quiz”"]);
     const on = screen.querySelector(".cat-chip.is-on");
     if (on && cat !== "All") on.scrollIntoView({ block: "nearest", inline: "center" });
   }
@@ -1531,6 +1589,7 @@
       t.setAttribute("aria-label", show ? "Hide password" : "Show password");
       return;
     }
+    if (t.hasAttribute("data-agent-reset")) { state.exploreQuery = ""; state.exploreCat = "All"; return viewExplore(); }
     if (t.dataset.cat) {
       state.exploreCat = t.dataset.cat;
       return viewExplore();
