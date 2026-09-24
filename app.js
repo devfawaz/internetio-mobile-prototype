@@ -235,7 +235,7 @@
   // Bump when seed data changes; `?reset` in the URL also restores it (handy between video takes).
   const DATA_VERSION = 2;
   if (location.search.includes("reset") || store.get("iio.v", 0) !== DATA_VERSION) {
-    ["iio.conversations", "iio.folders", "iio.user", "iio.tipOff"].forEach((k) => { try { localStorage.removeItem(k); } catch { /* ignore */ } });
+    ["iio.conversations", "iio.folders", "iio.user", "iio.tipOff", "iio.modelOrder", "iio.prompts", "iio.activePrompt"].forEach((k) => { try { localStorage.removeItem(k); } catch { /* ignore */ } });
     store.set("iio.v", DATA_VERSION);
     if (location.search.includes("reset")) history.replaceState(null, "", location.pathname + location.hash);
   }
@@ -250,6 +250,13 @@
     folders: store.get("iio.folders", null) || seedFolders(),
     guestFollowUps: 0,
     lastQuery: DEFAULT_QUERY,
+    modelOrder: store.get("iio.modelOrder", null),
+    prompts: store.get("iio.prompts", null) || [
+      { id: "p1", name: "Explain like I'm new", desc: "Plain language, no jargon", text: "Explain answers simply, as if I'm new to the topic. Define any technical terms and use an everyday example." },
+      { id: "p2", name: "Quick bullet summary", desc: "Short and scannable", text: "Answer in 5 bullet points or fewer. Lead with the most important point. No introductions." },
+      { id: "p3", name: "Business tone", desc: "For work emails and docs", text: "Use a clear, professional tone suitable for sharing with colleagues and clients." },
+    ],
+    activePrompt: store.get("iio.activePrompt", null),
   };
 
   state.user = normalizeUser(state.user);
@@ -258,6 +265,9 @@
     store.set("iio.user", state.user);
     store.set("iio.conversations", state.conversations);
     store.set("iio.folders", state.folders);
+    store.set("iio.modelOrder", state.modelOrder);
+    store.set("iio.prompts", state.prompts);
+    store.set("iio.activePrompt", state.activePrompt);
   };
 
   // ── Helpers ───────────────────────────────────────────────
@@ -273,6 +283,15 @@
     return String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
   }
 
+  // Models in the user's saved order (Reorder AI Models), falling back to the default order.
+  const orderedModels = () => {
+    const order = state.modelOrder || [];
+    return [...MODELS].sort((a, b) => {
+      const ia = order.indexOf(a.key), ib = order.indexOf(b.key);
+      return (ia < 0 ? 99 : ia) - (ib < 0 ? 99 : ib);
+    });
+  };
+  const activePromptObj = () => state.prompts.find((p) => p.id === state.activePrompt) || null;
   const modelByKey = (key) => MODELS.find((m) => m.key === key) || MODELS[0];
   const agentByKey = (key) => AGENTS.find((a) => a.key === key) || AGENTS[0];
   const nameInitials = (n) => n.trim().split(/\s+/).slice(0, 2).map((w) => w[0]).join("").toUpperCase() || "?";
@@ -322,8 +341,8 @@
         <input type="search" name="q" value="${escapeHtml(search)}" aria-label="Search" placeholder="What do you want to know?" autocomplete="off" enterkeyhint="search">
         <div class="trail">
           <button type="button" class="icon-btn" data-clear aria-label="Clear">${icon("close")}</button>
-          <button type="button" class="icon-btn" data-soon="Model filters" aria-label="Choose models">${icon("tune")}</button>
-          <button type="button" class="icon-btn" data-soon="Prompt library" aria-label="Prompt library">${icon("library_books")}</button>
+          <button type="button" class="icon-btn" data-open="reorder" aria-label="Reorder AI models">${icon("tune")}</button>
+          <button type="button" class="icon-btn prompt-btn${activePromptObj() ? " is-on" : ""}" data-open="prompts" aria-label="Custom prompts">${icon("library_books")}</button>
         </div>
       </form>`;
     }
@@ -345,8 +364,8 @@
           <span class="icon-btn lead" aria-hidden="true">${icon("search")}</span>
           <input type="search" name="q" placeholder="What do you want to know?" aria-label="What do you want to know?" autocomplete="off" enterkeyhint="search">
           <div class="trail">
-            <button type="button" class="icon-btn" data-soon="Model filters" aria-label="Choose models">${icon("tune")}</button>
-            <button type="button" class="icon-btn" data-soon="Prompt library" aria-label="Prompt library">${icon("library_books")}</button>
+            <button type="button" class="icon-btn" data-open="reorder" aria-label="Reorder AI models">${icon("tune")}</button>
+            <button type="button" class="icon-btn prompt-btn${activePromptObj() ? " is-on" : ""}" data-open="prompts" aria-label="Custom prompts">${icon("library_books")}</button>
           </div>
         </form>
         <p class="intro">Start exploring insights from multiple AI models. Compare answers, save your favourites, and follow up effortlessly.</p>
@@ -415,15 +434,16 @@
     setTimeout(() => {
       if (viewResults.token !== token) return;
       screen.innerHTML = `<div class="view results">
-        <p class="results-meta">${MODELS.length} answers from ${MODELS.length} AI models</p>
-        ${MODELS.map(resultItem).join("")}
+        <p class="results-meta">${MODELS.length} answers from ${MODELS.length} AI models${activePromptObj() ? ` · Prompt: <strong>${escapeHtml(activePromptObj().name)}</strong>` : ""}</p>
+        ${orderedModels().map(resultItem).join("")}
       </div>`;
     }, 650);
   }
 
   function viewAnswer(key, params) {
-    const idx = Math.max(0, MODELS.findIndex((m) => m.key === key));
-    const m = MODELS[idx];
+    const list = orderedModels();
+    const idx = Math.max(0, list.findIndex((m) => m.key === key));
+    const m = list[idx];
     const q = params.get("q") || state.lastQuery;
     renderTopbar();
     screen.innerHTML = `<article class="view answer">
@@ -440,8 +460,8 @@
       </div>
     </article>`;
 
-    const prev = MODELS[idx - 1];
-    const next = MODELS[idx + 1];
+    const prev = list[idx - 1];
+    const next = list[idx + 1];
     setDock(`<div class="pager-dock">
       <div class="pager">
         <button class="btn prev" ${prev ? `data-go="#/answer/${prev.key}?q=${encodeURIComponent(q)}"` : "disabled"} aria-label="Previous answer">${icon("chevron_left")}Prev</button>
@@ -617,12 +637,12 @@
     if (!c) return "";
     const isNew = state.justAdded === id;
     return `<li class="srow${isNew ? " is-new" : ""}"><a class="srow-main" href="#/chat/${id}">${itemIcon(c)}<span class="label">${escapeHtml(c.title)}</span></a>
-      <button class="icon-btn srow-more" data-soon="Options for “${escapeHtml(c.title)}”" aria-label="More options">${icon("more_vert")}</button></li>`;
+      <button class="icon-btn srow-more" data-row-menu="item:${id}" aria-label="More options">${icon("more_vert")}</button></li>`;
   }
 
   function folderRow(f) {
     return `<li class="srow"><a class="srow-main" href="#/chats/folder/${f.id}"><span class="row-ico">${icon("folder")}</span><span class="label">${escapeHtml(f.name)}</span></a>
-      <button class="icon-btn srow-more" data-soon="Folder options" aria-label="Folder options">${icon("more_vert")}</button></li>`;
+      <button class="icon-btn srow-more" data-row-menu="folder:${f.id}" aria-label="Folder options">${icon("more_vert")}</button></li>`;
   }
 
   // Saved Items — flat list; folders open as their own page (Chat Page › Mobile optimisation).
@@ -645,7 +665,7 @@
           ${folder ? `<a class="icon-btn md" href="#/chats" aria-label="Back to Saved Items">${icon("arrow_back")}</a>` : "<span></span>"}
           <h2>${folder ? escapeHtml(folder.name) : "Saved Items"}</h2>
           ${folder
-            ? `<button class="icon-btn md" data-soon="Folder options" aria-label="Folder options">${icon("more_vert")}</button>`
+            ? `<button class="icon-btn md" data-row-menu="folder:${folder.id}" aria-label="Folder options">${icon("more_vert")}</button>`
             : `<button class="icon-btn md" data-new-folder aria-label="New folder">${icon("create_new_folder")}</button>`}
         </div>
         <div class="card-scroll saved-list">
@@ -769,6 +789,354 @@
     });
   }
 
+  // ── Dialogs & sheets ──────────────────────────────────────
+
+  function openModal(html, { sheet = false, id = "app-modal" } = {}) {
+    closeModal();
+    const wrap = document.createElement("div");
+    wrap.className = `modal-backdrop${sheet ? " as-sheet" : ""}`;
+    wrap.id = id;
+    wrap.dataset.modal = "";
+    wrap.innerHTML = html;
+    $(".device").appendChild(wrap);
+    wrap.addEventListener("click", (e) => { if (e.target === wrap) closeModal(); });
+    return wrap;
+  }
+  function closeModal() { document.querySelectorAll("[data-modal]").forEach((m) => m.remove()); }
+
+  const dialogHead = (title, { back = false } = {}) => `<div class="dlg-head">
+      ${back ? `<button type="button" class="icon-btn" data-dlg-back aria-label="Back">${icon("arrow_back")}</button>` : ""}
+      <h2>${title}</h2>
+      <button type="button" class="icon-btn dlg-close" data-close-modal aria-label="Close">${icon("close")}</button>
+    </div>`;
+
+  // Where an item lives: null = My Chats root, otherwise the folder object.
+  const folderOf = (id) => state.folders.folders.find((f) => f.items.includes(id)) || null;
+  const detach = (id) => {
+    state.folders.root = state.folders.root.filter((x) => x !== id);
+    state.folders.folders.forEach((f) => { f.items = f.items.filter((x) => x !== id); });
+  };
+  function placeItem(id, folderId) {
+    detach(id);
+    const f = folderId && state.folders.folders.find((x) => x.id === folderId);
+    if (f) f.items.unshift(id); else state.folders.root.unshift(id);
+    state.justAdded = id;
+  }
+
+  // Add to folder (Chat Page, 928:16167): choosing a destination saves the chat there.
+  function openAddToFolder(convo) {
+    const F = state.folders;
+    const render = (creating = false) => `<div class="dlg">
+      ${dialogHead("Add to folder")}
+      <div class="dlg-body folder-pick">
+        <button class="pick-row" data-add-to=""><span class="ms">chat_bubble</span><span>My Chats</span></button>
+        ${F.folders.map((f) => `<button class="pick-row sub" data-add-to="${f.id}"><span class="ms caret">arrow_right</span><span class="ms">folder</span><span>${escapeHtml(f.name)}</span></button>`).join("")}
+        ${creating
+          ? `<form class="pick-new" id="pick-new"><span class="ms">create_new_folder</span><input name="name" value="Untitled Folder" maxlength="40" aria-label="New folder name"><button class="btn btn-primary" type="submit">Add</button></form>`
+          : `<button class="pick-row link" data-add-new><span class="ms">create_new_folder</span><span>New Folder</span></button>`}
+      </div>
+      <div class="dlg-actions"><button class="btn btn-secondary" data-close-modal>Close</button></div>
+    </div>`;
+    const wrap = openModal(render());
+    wrap.addEventListener("click", (e) => {
+      const b = e.target.closest("button");
+      if (!b) return;
+      if (b.dataset.addTo !== undefined) {
+        convo.saved = true;
+        placeItem(convo.id, b.dataset.addTo || null);
+        persist();
+        syncSaveChips(convo);
+        closeModal();
+        const f = F.folders.find((x) => x.id === b.dataset.addTo);
+        toast(`Saved to ${f ? f.name : "My Chats"}`);
+      } else if (b.hasAttribute("data-add-new")) {
+        wrap.innerHTML = render(true);
+        const form = $("#pick-new");
+        form.name.focus();
+        form.name.select();
+        form.addEventListener("submit", (ev) => {
+          ev.preventDefault();
+          const name = form.name.value.trim();
+          if (!name) return;
+          const id = `f${Date.now()}`;
+          F.folders.push({ id, name, items: [] });
+          convo.saved = true;
+          placeItem(convo.id, id);
+          persist();
+          syncSaveChips(convo);
+          closeModal();
+          toast(`Saved to ${name}`);
+        });
+      }
+    });
+  }
+
+  // Row ⋮ menu: Rename / Move / Delete (folders: Rename / Delete).
+  function openRowMenu(anchor, ref) {
+    closeRowMenu();
+    const [type, id] = ref.split(":");
+    const menuEl = document.createElement("div");
+    menuEl.className = "row-menu";
+    menuEl.id = "row-menu";
+    menuEl.setAttribute("role", "menu");
+    menuEl.innerHTML = `<button role="menuitem" data-act="rename" data-ref="${ref}">Rename</button>
+      ${type === "item" ? `<button role="menuitem" data-act="move" data-ref="${ref}">Move</button>` : ""}
+      <button role="menuitem" class="danger" data-act="delete" data-ref="${ref}">Delete</button>`;
+    const dev = $(".device").getBoundingClientRect();
+    const a = anchor.getBoundingClientRect();
+    menuEl.style.top = `${a.bottom - dev.top + 4}px`;
+    menuEl.style.right = `${dev.right - a.right}px`;
+    $(".device").appendChild(menuEl);
+    const below = menuEl.getBoundingClientRect();
+    if (below.bottom > dev.bottom - 110) menuEl.style.top = `${a.top - dev.top - below.height - 4}px`;
+  }
+  function closeRowMenu() { $("#row-menu")?.remove(); }
+
+  function itemTitle(ref) {
+    const [type, id] = ref.split(":");
+    return type === "item" ? state.conversations[id]?.title : state.folders.folders.find((f) => f.id === id)?.name;
+  }
+
+  function openRename(ref) {
+    const [type, id] = ref.split(":");
+    const wrap = openModal(`<form class="dlg" id="rename-form">
+      ${dialogHead("Rename")}
+      <div class="dlg-body"><input class="dlg-input" name="name" value="${escapeHtml(itemTitle(ref) || "")}" maxlength="80" aria-label="Name"></div>
+      <div class="dlg-actions"><button type="button" class="btn btn-secondary" data-close-modal>Cancel</button><button class="btn btn-primary" type="submit">OK</button></div>
+    </form>`);
+    const form = wrap.querySelector("form");
+    form.name.focus();
+    form.name.select();
+    form.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const name = form.name.value.trim();
+      if (!name) return;
+      if (type === "item") state.conversations[id].title = name;
+      else state.folders.folders.find((f) => f.id === id).name = name;
+      persist();
+      closeModal();
+      route();
+      toast("Renamed");
+    });
+  }
+
+  function openMove(ref) {
+    const id = ref.split(":")[1];
+    const from = folderOf(id);
+    let target = from ? from.id : "";
+    const wrap = openModal(`<form class="dlg" id="move-form">
+      ${dialogHead(`Move “${escapeHtml(itemTitle(ref))}”`)}
+      <div class="dlg-body">
+        <p class="move-from"><span>From:</span>${icon(from ? "folder" : "chat_bubble")}${escapeHtml(from ? from.name : "My Chats")}</p>
+        <p class="move-label">Select a folder</p>
+        <div class="move-list" role="radiogroup">
+          ${[{ id: "", name: "My Chats" }, ...state.folders.folders].map((f) => `<label class="move-row">
+            <input type="radio" name="dest" value="${f.id}" ${f.id === target ? "checked" : ""}>
+            ${icon(f.id ? "folder" : "chat_bubble")}<span>${escapeHtml(f.name)}</span></label>`).join("")}
+        </div>
+      </div>
+      <div class="dlg-actions"><button type="button" class="btn btn-secondary" data-close-modal>Cancel</button><button class="btn btn-primary" type="submit" disabled>Move</button></div>
+    </form>`);
+    const form = wrap.querySelector("form");
+    const submit = form.querySelector("[type=submit]");
+    form.addEventListener("change", () => { submit.disabled = form.dest.value === target; });
+    form.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const dest = form.dest.value;
+      placeItem(id, dest || null);
+      persist();
+      closeModal();
+      route();
+      toast(`Moved to ${dest ? state.folders.folders.find((f) => f.id === dest).name : "My Chats"}`);
+    });
+  }
+
+  function openDelete(ref) {
+    const [type, id] = ref.split(":");
+    const folder = type === "folder" && state.folders.folders.find((f) => f.id === id);
+    const wrap = openModal(`<div class="dlg">
+      ${dialogHead("Delete?")}
+      <div class="dlg-body"><p class="dlg-text">“${escapeHtml(itemTitle(ref))}” will be deleted${folder && folder.items.length ? `. The ${folder.items.length} item${folder.items.length > 1 ? "s" : ""} inside will move to My Chats` : ""}.</p></div>
+      <div class="dlg-actions"><button class="btn btn-secondary" data-close-modal>Cancel</button><button class="btn btn-danger" data-confirm-delete>Delete</button></div>
+    </div>`);
+    wrap.querySelector("[data-confirm-delete]").addEventListener("click", () => {
+      const inFolderView = parseHash().parts[2] === id;
+      if (folder) {
+        state.folders.root.push(...folder.items);
+        state.folders.folders = state.folders.folders.filter((f) => f.id !== id);
+      } else {
+        detach(id);
+        delete state.conversations[id];
+      }
+      persist();
+      closeModal();
+      if (inFolderView || (type === "item" && parseHash().parts[1] === id)) go("#/chats"); else route();
+      toast("Deleted");
+    });
+  }
+
+  // Reorder AI Models (495:18866) — drag the handles, Save applies the order to results.
+  function openReorder() {
+    let order = orderedModels().map((m) => m.key);
+    const render = () => `<div class="dlg sheet-dlg">
+      ${dialogHead("Reorder AI Models")}
+      <div class="dlg-body">
+        <p class="dlg-info">${icon("info")}Drag to reorder AI models in your results, then tap Save to apply your changes.</p>
+        <ul class="reorder-list" id="reorder-list">
+          ${order.map((k) => { const m = modelByKey(k); return `<li class="reorder-row" data-key="${k}">
+            <span class="drag-handle" aria-label="Drag to reorder">${icon("drag_indicator")}</span>
+            <img src="${m.icon}" alt="" width="24" height="24"><span class="rn">${m.name}</span><span class="rid">${m.id}</span></li>`; }).join("")}
+        </ul>
+      </div>
+      <div class="dlg-actions"><button class="btn btn-text" data-reorder-reset>Reset</button><span class="spacer"></span><button class="btn btn-secondary" data-close-modal>Cancel</button><button class="btn btn-primary" data-reorder-save>Save</button></div>
+    </div>`;
+    const wrap = openModal(render(), { sheet: true });
+    const wire = () => {
+      const list = $("#reorder-list");
+      list.addEventListener("pointerdown", (e) => {
+        const row = e.target.closest(".reorder-row");
+        if (!row || !e.target.closest(".drag-handle")) return;
+        e.preventDefault();
+        row.classList.add("dragging");
+        row.setPointerCapture(e.pointerId);
+        const move = (ev) => {
+          const rows = [...list.children].filter((r) => r !== row);
+          const after = rows.find((r) => { const b = r.getBoundingClientRect(); return ev.clientY < b.top + b.height / 2; });
+          list.insertBefore(row, after || null);
+        };
+        const up = () => {
+          row.classList.remove("dragging");
+          row.removeEventListener("pointermove", move);
+          order = [...list.children].map((r) => r.dataset.key);
+        };
+        row.addEventListener("pointermove", move);
+        row.addEventListener("pointerup", up, { once: true });
+        row.addEventListener("pointercancel", up, { once: true });
+      });
+    };
+    wire();
+    wrap.addEventListener("click", (e) => {
+      if (e.target.closest("[data-reorder-reset]")) { order = MODELS.map((m) => m.key); wrap.innerHTML = render(); wire(); }
+      if (e.target.closest("[data-reorder-save]")) {
+        state.modelOrder = order;
+        persist();
+        closeModal();
+        toast("Model order saved");
+        if (["results", "answer"].includes(parseHash().parts[0])) route();
+      }
+    });
+  }
+
+  // Custom Prompts (503:30567 / 501:20078) — pick an active prompt, add, edit, delete with undo.
+  function openPrompts() {
+    let selected = state.activePrompt;
+    let query = "";
+    let undo = null; // { prompt, index }
+    let wrap;
+    const listHtml = () => {
+      const items = state.prompts.filter((p) => !query || `${p.name} ${p.desc} ${p.text}`.toLowerCase().includes(query.toLowerCase()));
+      return `${undo ? `<div class="undo-bar">You deleted <strong>${escapeHtml(undo.prompt.name)}</strong><button data-prompt-undo>Undo</button></div>` : ""}
+        ${items.map((p) => `<div class="prompt-card${p.id === selected ? " is-on" : ""}">
+          <label class="prompt-pick"><input type="radio" name="prompt" value="${p.id}" ${p.id === selected ? "checked" : ""}>
+            <span><strong>${escapeHtml(p.name)}</strong><span class="prompt-text">${escapeHtml(p.text)}</span></span></label>
+          <button class="icon-btn" data-prompt-edit="${p.id}" aria-label="Edit ${escapeHtml(p.name)}">${icon("edit")}</button>
+          <button class="icon-btn" data-prompt-del="${p.id}" aria-label="Delete ${escapeHtml(p.name)}" ${p.id === selected ? "disabled" : ""}>${icon("delete")}</button>
+        </div>`).join("") || `<p class="prompt-empty">${state.prompts.length ? "No prompts match your search." : "No custom prompts yet. Create one to personalise every answer."}</p>`}`;
+    };
+    const listView = () => `<div class="dlg sheet-dlg">
+      ${dialogHead("Custom Prompts")}
+      <div class="dlg-body">
+        <p class="dlg-info">${icon("info")}Create custom prompts to personalize AI responses. Select one as active to apply it to all AI answers.</p>
+        <div class="prompt-tools">
+          <label class="prompt-search">${icon("search")}<input type="search" placeholder="Search for a custom prompt" value="${escapeHtml(query)}" aria-label="Search prompts" id="prompt-q"></label>
+          <button class="btn-link" data-prompt-new>${icon("add")}New prompt</button>
+        </div>
+        <div class="prompt-list" id="prompt-list">${listHtml()}</div>
+      </div>
+      <div class="dlg-actions"><button class="btn btn-text" data-prompt-clear ${selected ? "" : "disabled"}>Clear Selection</button><span class="spacer"></span><button class="btn btn-secondary" data-close-modal>Cancel</button><button class="btn btn-primary" data-prompt-save ${selected === state.activePrompt ? "disabled" : ""}>Save</button></div>
+    </div>`;
+    const formView = (p) => `<form class="dlg sheet-dlg" id="prompt-form">
+      ${dialogHead(p ? "Edit Prompt" : "New Prompt", { back: true })}
+      <div class="dlg-body prompt-form">
+        <label class="auth-field"><span class="auth-label">Name</span><span class="auth-input"><input name="name" placeholder="Enter a name for your prompt" value="${escapeHtml(p?.name || "")}" maxlength="40"></span></label>
+        <label class="auth-field"><span class="auth-label">Description</span><span class="auth-input"><input name="desc" placeholder="Add a brief description" value="${escapeHtml(p?.desc || "")}" maxlength="80"></span></label>
+        <label class="auth-field"><span class="auth-label">Prompt</span><textarea name="text" placeholder="Write your custom prompt here" rows="6">${escapeHtml(p?.text || "")}</textarea></label>
+      </div>
+      <div class="dlg-actions"><button type="button" class="btn btn-secondary" data-dlg-back>Back</button><button class="btn btn-primary" type="submit">Save</button></div>
+    </form>`;
+    const showList = () => {
+      wrap.innerHTML = listView();
+      $("#prompt-q").addEventListener("input", (e) => { query = e.target.value; $("#prompt-list").innerHTML = listHtml(); });
+    };
+    const refreshFooter = () => {
+      wrap.querySelector("[data-prompt-clear]").disabled = !selected;
+      wrap.querySelector("[data-prompt-save]").disabled = selected === state.activePrompt;
+    };
+    const showForm = (p) => {
+      wrap.innerHTML = formView(p);
+      const form = $("#prompt-form");
+      const submit = form.querySelector("[type=submit]");
+      const check = () => { submit.disabled = !(form.name.value.trim() && form.text.value.trim()); };
+      form.addEventListener("input", check);
+      check();
+      form.name.focus();
+      form.addEventListener("submit", (e) => {
+        e.preventDefault();
+        const data = { name: form.name.value.trim(), desc: form.desc.value.trim(), text: form.text.value.trim() };
+        if (p) Object.assign(p, data);
+        else { const np = { id: `p${Date.now()}`, ...data }; state.prompts.unshift(np); selected = np.id; }
+        persist();
+        showList();
+        refreshFooter();
+        toast(p ? "Prompt updated" : "Prompt created");
+      });
+    };
+    wrap = openModal("", { sheet: true });
+    showList();
+    wrap.addEventListener("change", (e) => {
+      if (e.target.name === "prompt") {
+        selected = e.target.value;
+        $("#prompt-list").innerHTML = listHtml();
+        refreshFooter();
+      }
+    });
+    wrap.addEventListener("click", (e) => {
+      const b = e.target.closest("button");
+      if (!b) return;
+      if (b.hasAttribute("data-prompt-new")) return showForm(null);
+      if (b.dataset.promptEdit) return showForm(state.prompts.find((p) => p.id === b.dataset.promptEdit));
+      if (b.hasAttribute("data-dlg-back")) { showList(); return refreshFooter(); }
+      if (b.dataset.promptDel) {
+        const index = state.prompts.findIndex((p) => p.id === b.dataset.promptDel);
+        undo = { prompt: state.prompts[index], index };
+        state.prompts.splice(index, 1);
+        persist();
+        $("#prompt-list").innerHTML = listHtml();
+        return;
+      }
+      if (b.hasAttribute("data-prompt-undo") && undo) {
+        state.prompts.splice(undo.index, 0, undo.prompt);
+        undo = null;
+        persist();
+        $("#prompt-list").innerHTML = listHtml();
+        return;
+      }
+      if (b.hasAttribute("data-prompt-clear")) {
+        selected = null;
+        $("#prompt-list").innerHTML = listHtml();
+        return refreshFooter();
+      }
+      if (b.hasAttribute("data-prompt-save")) {
+        state.activePrompt = selected;
+        persist();
+        closeModal();
+        toast(selected ? `Prompt “${activePromptObj().name}” is active` : "No prompt applied");
+        document.querySelectorAll(".prompt-btn").forEach((x) => x.classList.toggle("is-on", !!selected));
+        if (parseHash().parts[0] === "results") route();
+      }
+    });
+  }
+
   // ── Auth: sign up, more details, first profile, login ─────
 
   function authShell(inner, { back = true } = {}) {
@@ -887,7 +1255,7 @@
         const user = email.toLowerCase() === state.user.email.toLowerCase()
           ? state.user
           : { first: "John", last: "Doe", email, profiles: ["John Doe", "Work", "Martha Doe"] };
-        completeAuth(user, `Welcome back, ${user.first}`);
+        loginAs(user);
       });
   }
 
@@ -896,6 +1264,27 @@
     let list = u.profiles || [u.profile || `${u.first} ${u.last}`];
     list = list.map((p, i) => (typeof p === "string" ? { name: p, color: PROFILE_COLORS[i % 3] } : p));
     return { first: u.first, last: u.last, email: u.email, profiles: list, active: Math.min(u.active || 0, list.length - 1) };
+  }
+
+  // Accounts with several profiles pick one after login (desktop "Choose your profile").
+  function loginAs(user) {
+    const u = normalizeUser(user);
+    if (u.profiles.length > 1) {
+      state.pendingUser = u;
+      return go("#/login/profile");
+    }
+    completeAuth(u, `Welcome back, ${u.first}`);
+  }
+
+  function viewChooseProfile() {
+    const u = state.pendingUser;
+    if (!u) return go("#/login");
+    screen.innerHTML = authShell(`
+      <p class="auth-headline">Choose your profile</p>
+      <div class="choose-list">
+        ${u.profiles.map((p, i) => `<button class="choose-row" data-choose="${i}"><span class="avatar" style="background:${p.color}">${escapeHtml(nameInitials(p.name))}</span><span>${escapeHtml(p.name)}</span></button>`).join("")}
+        ${u.profiles.length < 3 ? `<button class="choose-row new" data-choose-new><span class="choose-plus">${icon("add")}</span><span>New Profile</span></button>` : ""}
+      </div>`);
   }
 
   function completeAuth(user, message) {
@@ -929,6 +1318,7 @@
 
   function route() {
     closeMenu();
+    closeRowMenu();
     closeAgent();
     closeSheet({ restoreFocus: false });
     setDock("");
@@ -939,7 +1329,8 @@
     if (isAuth) {
       topbar.innerHTML = "";
       if (state.signedIn) return go("#/");
-      if (page === "login") viewLogin();
+      if (page === "login" && arg === "profile") viewChooseProfile();
+      else if (page === "login") viewLogin();
       else if (arg === "details") viewSignupDetails();
       else if (arg === "profile") viewSignupProfile();
       else viewSignup();
@@ -1042,6 +1433,7 @@
   // ── Global event delegation ───────────────────────────────
 
   document.addEventListener("click", (e) => {
+    if (!e.target.closest("#row-menu, [data-row-menu]")) closeRowMenu();
     const t = e.target.closest("button, a");
     if (!t) {
       if (!menu.hidden && !e.target.closest("#avatar-menu")) closeMenu();
@@ -1093,7 +1485,7 @@
     }
     if (t.dataset.social) {
       const provider = t.dataset.social === "google" ? "Google" : "Facebook";
-      if (parseHash().parts[0] === "login") return completeAuth(state.user, `Signed in with ${provider}`);
+      if (parseHash().parts[0] === "login") return loginAs(state.user);
       // The provider shares first name and email; last name is left for the user.
       state.signup = { first: "John", last: "", email: "johndoe@example.com" };
       return go("#/signup/details");
@@ -1160,6 +1552,42 @@
 
 
     if (t.hasAttribute("data-new-folder")) return openNewFolder();
+    if (t.hasAttribute("data-close-modal")) return closeModal();
+    if (t.dataset.open === "reorder" || t.dataset.open === "prompts") {
+      if (!state.signedIn) return openGate(t.dataset.open === "reorder" ? "Sign in to reorder AI models" : "Sign in to use custom prompts", "Personalise how answers are ordered and written with a free account.");
+      return t.dataset.open === "reorder" ? openReorder() : openPrompts();
+    }
+    if (t.dataset.rowMenu) {
+      e.preventDefault();
+      if ($("#row-menu")?.dataset.for === t.dataset.rowMenu) return closeRowMenu();
+      openRowMenu(t, t.dataset.rowMenu);
+      $("#row-menu").dataset.for = t.dataset.rowMenu;
+      return;
+    }
+    if (t.dataset.act) {
+      closeRowMenu();
+      const ref = t.dataset.ref;
+      if (t.dataset.act === "rename") return openRename(ref);
+      if (t.dataset.act === "move") return openMove(ref);
+      return openDelete(ref);
+    }
+    if (t.dataset.choose !== undefined) {
+      const u = state.pendingUser;
+      u.active = +t.dataset.choose;
+      state.pendingUser = null;
+      return completeAuth(u, `Welcome back, ${u.profiles[u.active].name}`);
+    }
+    if (t.hasAttribute("data-choose-new")) {
+      inlineEdit(t, "", (name) => {
+        const u = state.pendingUser;
+        if (!name || !u) return viewChooseProfile();
+        u.profiles.push({ name, color: PROFILE_COLORS[u.profiles.length % 3] });
+        u.active = u.profiles.length - 1;
+        state.pendingUser = null;
+        completeAuth(u, `Profile “${name}” created`);
+      });
+      return;
+    }
     if (t.hasAttribute("data-hide-tip")) {
       state.tipHidden = true;
       if ($("#tip-off")?.checked) store.set("iio.tipOff", true);
@@ -1184,8 +1612,7 @@
       }
       if (t.hasAttribute("data-save") && convo) {
         if (!state.signedIn) return openGate("Sign up to save answers", "Save answers from any AI model and organise them into folders.");
-        if (convo.saved) return toast("Already in My Chats");
-        return saveConversation(convo);
+        return openAddToFolder(convo);
       }
     }
   });
@@ -1204,6 +1631,8 @@
     if (!sheet.hidden) closeSheet();
     if (!menu.hidden) closeMenu();
     closeAgent();
+    closeModal();
+    closeRowMenu();
   });
 
   window.addEventListener("hashchange", route);
