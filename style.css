@@ -91,7 +91,7 @@ a { color: inherit; text-decoration: none; }
     box-shadow: 0 24px 48px rgba(8, 24, 51, 0.12), 0 0 0 1px rgba(8, 24, 51, 0.06);
   }
   .device .statusbar { display: flex; }
-  .menu { top: 110px; }
+  .menu { top: 112px; }
 }
 
 /* iOS status bar — only drawn on desktop; real phones show their own.
@@ -470,11 +470,11 @@ button.avatar:focus-visible { outline: 2px solid var(--blue-500); outline-offset
 
 /* ── Conversation ─────────────────────────────────────────── */
 
-.convo-wrap { padding: 0 16px 16px; }
+.convo-wrap { padding: 0 16px 16px; min-height: 100%; display: flex; flex-direction: column; }
 .convo {
+  flex: 1;
   border-radius: 24px;
   background: var(--grey-50);
-  min-height: 100%;
 }
 .convo-head {
   display: grid;
@@ -937,47 +937,68 @@ button.avatar:focus-visible { outline: 2px solid var(--blue-500); outline-offset
 .sheet-text { margin: 0; color: var(--grey-600); font-size: 14px; line-height: 20px; text-align: center; }
 .sheet-actions { display: flex; flex-direction: column; gap: 8px; width: 100%; margin-top: 8px; }
 
+/* Account dropdown — Figma "User Dropdown": 300 wide, r12, 8px padding */
 .menu {
   position: absolute;
   top: 60px;
   right: 16px;
-  width: 232px;
+  width: 300px;
+  max-width: calc(100% - 32px);
+  max-height: calc(100% - 80px);
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
   padding: 8px;
-  border-radius: 16px;
+  border-radius: 12px;
   background: var(--white);
-  box-shadow: 0 8px 24px rgba(8, 24, 51, 0.16), 0 0 0 1px var(--grey-150);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.12);
   z-index: 12;
   animation: pop 0.16s ease-out;
   transform-origin: top right;
 }
 @keyframes pop { from { opacity: 0; transform: scale(0.96); } }
-.menu-head { display: flex; gap: 10px; align-items: center; padding: 8px 8px 12px; border-bottom: 1px solid var(--grey-150); margin-bottom: 4px; }
-.menu-head strong { display: block; font-size: 14px; line-height: 20px; }
-.menu-head span:not(.avatar) { display: block; color: var(--grey-500); font-size: 12px; line-height: 16px; }
-.menu-profile {
+.um-head { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 24px; }
+.avatar-lg { width: 60px; height: 60px; font-size: 24px; }
+.avatar-xs { width: 30px; height: 30px; font-size: 12px; }
+.um-name { display: flex; align-items: center; gap: 2px; padding-left: 26px; min-height: 24px; }
+.um-name strong { font-size: 16px; font-weight: 600; line-height: 24px; }
+.um-edit { width: 24px; height: 24px; }
+.um-edit .ms { font-size: 16px; }
+.um-email { color: var(--grey-600); font-size: 12px; font-weight: 500; line-height: 18px; }
+.um-section { display: flex; flex-direction: column; padding-top: 4px; border-top: 1px solid var(--grey-300); }
+.um-label { margin: 0; padding: 4px 12px; color: var(--grey-600); font-size: 12px; font-weight: 600; line-height: 24px; }
+.um-row {
   display: flex;
   align-items: center;
-  gap: 10px;
-  margin: 0 0 4px;
-  padding: 10px 8px 12px;
-  border-bottom: 1px solid var(--grey-150);
-  font-size: 14px;
-  font-weight: 500;
-}
-.menu-profile .ms { font-size: 24px; color: var(--blue-500); }
-.menu-profile small { display: block; color: var(--grey-500); font-size: 11px; line-height: 14px; }
-.menu-item {
-  display: flex;
-  align-items: center;
-  gap: 10px;
+  gap: 12px;
   width: 100%;
-  padding: 10px 8px;
-  border-radius: 10px;
+  min-height: 54px;
+  padding: 12px;
+  border-radius: 8px;
+  text-align: left;
   font-size: 14px;
-  font-weight: 500;
-  color: var(--grey-700);
+  font-weight: 600;
+  line-height: 24px;
+  transition: background-color 0.15s;
 }
-.menu-item:hover { background: var(--grey-100); }
+.um-row:hover { background: var(--grey-50); }
+.um-row.is-active { background: var(--blue-50); box-shadow: inset 0 0 0 1px var(--blue-500); }
+.um-ico { display: grid; place-items: center; width: 30px; height: 30px; flex: none; }
+.um-ico .ms { font-size: 20px; }
+.um-input {
+  width: 100%;
+  height: 40px;
+  margin: 7px 0;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 8px;
+  box-shadow: inset 0 0 0 1.5px var(--blue-500);
+  outline: 0;
+  font-size: 14px;
+  font-weight: 600;
+}
+.um-head .um-input { width: 180px; margin: 0; text-align: center; }
 
 .toast {
   position: absolute;

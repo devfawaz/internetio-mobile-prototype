@@ -6,6 +6,7 @@
   // ── Content ───────────────────────────────────────────────
 
   const DEFAULT_QUERY = "what is design system?";
+  const PROFILE_COLORS = ["#1b51aa", "#039286", "#706aff"];
 
   const DS_OVERVIEW = `
     <p>A design system is a collection of reusable components, guided by clear standards, that can be assembled to build any number of applications. It serves as a single source of truth for teams, ensuring consistency and efficiency in design and development processes.</p>
@@ -227,8 +228,8 @@
   });
 
   const state = {
-    signedIn: store.get("iio.signedIn", false),
-    user: store.get("iio.user", null) || { first: "John", last: "Doe", email: "johndoe@example.com", profile: "John Doe" },
+    signedIn: false, // every visit starts logged out
+    user: store.get("iio.user", null) || { first: "John", last: "Doe", email: "johndoe@gmail.com", profiles: ["John Doe", "Work", "Martha Doe"] },
     signup: {},
     returnTo: "#/",
     exploreCat: "All",
@@ -238,8 +239,9 @@
     lastQuery: DEFAULT_QUERY,
   };
 
+  state.user = normalizeUser(state.user);
+
   const persist = () => {
-    store.set("iio.signedIn", state.signedIn);
     store.set("iio.user", state.user);
     store.set("iio.conversations", state.conversations);
     store.set("iio.folders", state.folders);
@@ -260,6 +262,8 @@
 
   const modelByKey = (key) => MODELS.find((m) => m.key === key) || MODELS[0];
   const agentByKey = (key) => AGENTS.find((a) => a.key === key) || AGENTS[0];
+  const nameInitials = (n) => n.trim().split(/\s+/).slice(0, 2).map((w) => w[0]).join("").toUpperCase() || "?";
+  const activeProfile = () => state.user.profiles[state.user.active] || state.user.profiles[0];
   const initials = (u) => `${(u.first || "?")[0]}${(u.last || "")[0] || ""}`.toUpperCase();
   const agentTile = (a, size = 40) =>
     `<span class="agent-tile" style="--tile-bg:${a.bg};--tile-fg:${a.fg};--tile:${size}px" aria-hidden="true"><span class="ms">${a.icon}</span></span>`;
@@ -287,7 +291,7 @@
 
   function authControls() {
     return state.signedIn
-      ? `<button class="avatar" id="avatar-btn" aria-label="Account menu" aria-haspopup="menu">${escapeHtml(initials(state.user))}</button>`
+      ? `<button class="avatar" id="avatar-btn" aria-label="Account menu" aria-haspopup="menu" style="background:${activeProfile().color}">${escapeHtml(nameInitials(activeProfile().name))}</button>`
       : `<div class="auth-buttons">
            <button class="btn btn-secondary" data-auth="login">Login</button>
            <button class="btn btn-primary" data-auth="signup">Sign up</button>
@@ -794,13 +798,20 @@
         // A known email restores that account; any other logs in as the demo user.
         const user = email.toLowerCase() === state.user.email.toLowerCase()
           ? state.user
-          : { first: "John", last: "Doe", email, profile: "John Doe" };
+          : { first: "John", last: "Doe", email, profiles: ["John Doe", "Work", "Martha Doe"] };
         completeAuth(user, `Welcome back, ${user.first}`);
       });
   }
 
+  // Profiles are stored as [{ name, color }]; plain strings (or a single `profile`) are upgraded.
+  function normalizeUser(u) {
+    let list = u.profiles || [u.profile || `${u.first} ${u.last}`];
+    list = list.map((p, i) => (typeof p === "string" ? { name: p, color: PROFILE_COLORS[i % 3] } : p));
+    return { first: u.first, last: u.last, email: u.email, profiles: list, active: Math.min(u.active || 0, list.length - 1) };
+  }
+
   function completeAuth(user, message) {
-    state.user = { first: user.first, last: user.last, email: user.email, profile: user.profile || `${user.first} ${user.last}` };
+    state.user = normalizeUser(user);
     state.signedIn = true;
     state.guestFollowUps = 0;
     persist();
@@ -882,26 +893,63 @@
   }
   backdrop.addEventListener("click", () => closeSheet());
 
-  function renderMenu() {
-    const u = state.user;
-    $("#menu-avatar").textContent = initials(u);
-    $("#menu-name").textContent = `${u.first} ${u.last}`.trim();
-    $("#menu-email").textContent = u.email;
-    $("#menu-profile").textContent = u.profile;
-  }
-  renderMenu();
-
   const menu = $("#avatar-menu");
   function closeMenu() { menu.hidden = true; }
 
-  $("#sign-out").addEventListener("click", () => {
-    state.signedIn = false;
+  // Account dropdown — matches the Figma "User Dropdown" component.
+  function renderMenu() {
+    const u = state.user;
+    const act = activeProfile();
+    menu.innerHTML = `
+      <div class="um-head">
+        <span class="avatar avatar-lg" style="background:${act.color}">${escapeHtml(nameInitials(act.name))}</span>
+        <div class="um-name"><strong id="um-profile-name">${escapeHtml(act.name)}</strong><button class="icon-btn um-edit" data-edit-profile aria-label="Edit profile name">${icon("edit")}</button></div>
+        <span class="um-email">${escapeHtml(u.email)}</span>
+      </div>
+      <div class="um-section">
+        <p class="um-label">Switch Profile</p>
+        ${u.profiles.map((p, i) => `<button class="um-row${i === u.active ? " is-active" : ""}" role="menuitemradio" aria-checked="${i === u.active}" data-profile="${i}">
+          <span class="avatar avatar-xs" style="background:${p.color}">${escapeHtml(nameInitials(p.name))}</span><span>${escapeHtml(p.name)}</span></button>`).join("")}
+        <button class="um-row" role="menuitem" data-new-profile><span class="um-ico">${icon("add")}</span><span>New Profile</span></button>
+      </div>
+      <div class="um-section">
+        <button class="um-row" role="menuitem" data-soon="Thanks! Feedback form coming soon"><span class="um-ico">${icon("mail")}</span><span>Leave Feedback</span></button>
+        <button class="um-row" role="menuitem" data-logout><span class="um-ico">${icon("logout")}</span><span>Logout</span></button>
+      </div>`;
+  }
+  renderMenu();
+
+  // Swaps a menu label for an input; Enter/blur commits, Escape cancels.
+  function inlineEdit(target, value, onDone) {
+    const input = document.createElement("input");
+    input.className = "um-input";
+    input.value = value;
+    input.maxLength = 24;
+    target.replaceWith(input);
+    input.focus();
+    input.select();
+    let done = false;
+    const finish = (commit) => {
+      if (done) return;
+      done = true;
+      onDone(commit ? input.value.trim() : "");
+    };
+    input.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") finish(true);
+      if (e.key === "Escape") { e.stopPropagation(); finish(false); }
+    });
+    input.addEventListener("blur", () => finish(true));
+  }
+
+  function refreshAccountUI() {
     persist();
-    closeMenu();
-    const { parts } = parseHash();
-    if (parts[0] === "chats") go("#/"); else route();
-    toast("Signed out");
-  });
+    renderMenu();
+    const btn = $("#avatar-btn");
+    if (btn) {
+      btn.textContent = nameInitials(activeProfile().name);
+      btn.style.background = activeProfile().color;
+    }
+  }
 
   // ── Global event delegation ───────────────────────────────
 
@@ -912,7 +960,39 @@
       return;
     }
 
-    if (t.id === "avatar-btn") { menu.hidden = !menu.hidden; return; }
+    if (t.id === "avatar-btn") { renderMenu(); menu.hidden = !menu.hidden; return; }
+    if (t.dataset.profile !== undefined) {
+      state.user.active = +t.dataset.profile;
+      refreshAccountUI();
+      closeMenu();
+      return toast(`Switched to ${activeProfile().name}`);
+    }
+    if (t.hasAttribute("data-new-profile")) {
+      if (state.user.profiles.length >= 3) return toast("You can have up to 3 profiles");
+      inlineEdit(t, "", (name) => {
+        if (name) {
+          state.user.profiles.push({ name, color: PROFILE_COLORS[state.user.profiles.length % 3] });
+          state.user.active = state.user.profiles.length - 1;
+          toast(`Profile "${name}" created`);
+        }
+        refreshAccountUI();
+      });
+      return;
+    }
+    if (t.hasAttribute("data-edit-profile")) {
+      inlineEdit($("#um-profile-name"), activeProfile().name, (name) => {
+        if (name) activeProfile().name = name;
+        refreshAccountUI();
+      });
+      t.hidden = true;
+      return;
+    }
+    if (t.hasAttribute("data-logout")) {
+      state.signedIn = false;
+      closeMenu();
+      if (parseHash().parts[0] === "chats") go("#/"); else route();
+      return toast("Logged out");
+    }
     if (!menu.hidden && !t.closest("#avatar-menu")) closeMenu();
 
     if (t.dataset.auth === "login" || t.dataset.auth === "signup") {
