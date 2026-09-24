@@ -1,144 +1,125 @@
 # internet.io: recording script
 
-Every flow below works in the prototype as written. Type the exact text shown in **bold quotes** so the scripted answers appear.
+## Who this is for
 
-**Before each take:** open `https://devfawaz.github.io/internetio-mobile-prototype/?reset` in a desktop browser. It opens at Pixel 10 Pro size, logged out, with fresh sample data. Wait for the search placeholder to start typing before you begin.
+**John, 29, product manager.** Busy, uses AI every day for work and life, and has noticed that different AI models give very different answers. He doesn't want to open five apps to compare them. In this video he plans his first trip to Japan, and along the way shows how internet.io fits into his week.
 
-**Login used in the script:** email **"johndoe@gmail.com"**, any password.
+Tone: calm, first person, like showing a friend a tool you actually use. Short sentences. No jargon.
+
+## Before each take
+
+- Open `https://devfawaz.github.io/internetio-mobile-prototype/?reset` in a desktop browser. It opens at Pixel 10 Pro size, logged out, with John's sample history.
+- Login when needed: **johndoe@gmail.com**, any password.
+- Type the text in **bold quotes** exactly. Those questions have tailored answers.
 
 ---
 
-## 1. Search and compare (guest), about 30s
+## 1. Ask once, compare every AI (guest), about 35s
 
 | On screen | Voiceover |
 |---|---|
-| Home. Let the placeholder type one example. | "internet.io asks every major AI model the same question." |
-| Tap the search bar, type **"What is a design system?"**, press Enter. | "I'll ask something I actually need for work." |
-| Results load: OpenAI, Meta, Gemini, Azure, Perplexity, Anthropic, Cohere. Scroll slowly. | "Seven answers, all in one list." |
-| Tap the OpenAI result. | "I can open any answer in full." |
-| Tap the right arrow twice (Meta, then Gemini). | "And flip between models without going back." |
-| Tap the close button. | |
+| Home. Let the placeholder type an example or two. | "I'm finally going to Japan, and I have no idea where to start." |
+| Tap search, type **"Plan a 5-day trip to Tokyo"**, press Enter. | "So I asked every AI at once." |
+| Seven answers appear. Scroll slowly. | "OpenAI gives me a day-by-day plan. Gemini adds costs. Anthropic asks what kind of trip I want." |
+| Tap the **Gemini** answer. | "Gemini's budget breakdown is really useful." |
+| Tap the right arrow to see Azure, then the left arrow back. | "And I can flip between them without starting over." |
 
-## 2. Follow-up and the guest limit, about 30s
-
-| On screen | Voiceover |
-|---|---|
-| Open the OpenAI answer, tap **Ask follow-up**. | "Let's go deeper with OpenAI." |
-| Type **"Make me a plan to create a design system in 2 weeks"**, send. | |
-| The two-week plan appears. | "It builds on the first answer." |
-| Point at the blue banner. | "Guests get five free questions. The banner invites you to sign up for more." |
-
-*Tip: the search in flow 1 and this follow-up count as 2 of the 5. To show the gate, send three more follow-ups; the sixth question opens the sign-up sheet.*
-
-## 3. Sign up with Google, about 30s
+## 2. Follow up, as a guest, about 30s
 
 | On screen | Voiceover |
 |---|---|
-| Tap **Get started** in the banner. | "Signing up takes a few seconds." |
-| Tap **Continue with Google**. | |
-| "Almost there" screen: first name and email are filled in. Type **"Doe"** as the last name, tap Continue. | "Google fills in most of it." |
-| "Create your first profile": keep **John Doe**, tap Create. | "Profiles keep work and personal searches apart." |
-| You land back in the same chat, signed in. | "And I'm right back where I was." |
+| Go back to the OpenAI answer, tap **Ask follow-up**. | "I like OpenAI's plan, but it's over my budget." |
+| Type **"Can you make it cheaper? My budget is $1,000 without flights."**, send. | |
+| The budget version appears. | "Capsule hotel, konbini breakfasts, Kamakura instead of Nikko. That works." |
+| Point at the blue banner. | "Without an account I get five free questions. I'm going to want more than that." |
 
-## 4. Sign up with email, about 30s (alternative to flow 3)
+*To show the limit on camera: the search and follow-up count as 2 of 5. Send three more follow-ups and the sixth opens the sign-up sheet.*
 
-| On screen | Voiceover |
-|---|---|
-| Tap **Sign up** in the top bar. | |
-| Type **"Ava"**, **"Stone"**, **"ava.stone@example.com"** and a password of 8 or more characters. Show the eye icon. | "The Continue button only activates when everything is valid." |
-| Continue, then Create on the profile screen. | |
-
-## 5. Log in and choose a profile, about 20s
+## 3. Sign up in seconds, about 25s
 
 | On screen | Voiceover |
 |---|---|
-| Tap **Log in**, enter **"johndoe@gmail.com"** and a password. | "I use one account for work and home." |
-| "Choose your profile": tap **Work**. | |
-| The avatar turns teal with a **W**. | "Everything I save now goes to my Work profile." |
+| Tap **Get started**. Tap **Continue with Google**. | "Signing up takes a few seconds." |
+| First name and email are filled in. Type **"Doe"**, tap Continue. | |
+| "Create your first profile": keep **John Doe**, tap Create. | "I can have separate profiles for work and personal stuff." |
+| Back in the same chat, signed in. | "And I'm right back in my trip plan." |
 
-## 6. Save and organize, about 30s
-
-| On screen | Voiceover |
-|---|---|
-| In any answer chat, tap **Save** under the answer. | "Worth keeping." |
-| Add to folder: tap **New folder**, type **"Design system rollout"**, tap Add. | "Straight into a new folder." |
-| Snackbar: "Saved to Design system rollout". Tap the **Saved** tab. | |
-| Open the folder. | "Everything for this project in one place." |
-
-## 7. Manage saved items, about 35s
+## 4. Save it to my trip folder, about 25s
 
 | On screen | Voiceover |
 |---|---|
-| Saved items: tap ⋮ on **Excel formula tips**, choose **Rename**, type **"Excel shortcuts"**, OK. | |
-| Tap ⋮ on it again, choose **Move**, select **Accounting**, tap Move. | "Moving things around is quick." |
-| Open **Accounting**, then tap the back arrow. | |
-| Tap ⋮ on **Surprise party checklist**, choose **Delete**, confirm. | "And I can clear out what I no longer need." |
+| Tap **Save** under the budget answer. | "This one's a keeper." |
+| Add to folder: tap **Japan trip**. Snackbar: "Saved to Japan trip". | |
+| Tap the **Saved** tab, open **Japan trip**. | "Everything for Japan lives here: the plan, whether the JR Pass is worth it, a ryokan shortlist." |
+| Tap back. | "And the rest of my week: meal prep, the email I sent asking for a raise, my sister's surprise party." |
 
-## 8. Saved message, about 15s
-
-| On screen | Voiceover |
-|---|---|
-| Saved items: open **Surprise party checklist** (skip flow 7's delete if you record this). | "I can also save a single answer." |
-| Tap the pencil, type **"Mia's birthday"**, press Enter. | |
-
-## 9. Keep your place with the Search tab, about 20s
+## 5. Keep my place while I chat, about 20s
 
 | On screen | Voiceover |
 |---|---|
-| From an answer, tap **Ask follow-up**. Point at the tip. | "The app keeps my search while I chat." |
-| Tap the **Search** tab. | "Back on Search, the answer is exactly where I left it." |
-| Tap the close button. | "Results are still there, no reloading." |
+| From the Tokyo results, open OpenAI, tap **Ask follow-up**. Point at the tip. | |
+| Type **"What should I pack for mid-April?"**, send. | "Quick side question." |
+| Tap the **Search** tab. | "When I go back to Search, my results are exactly where I left them." |
 
-## 10. Reorder AI models, about 20s
-
-| On screen | Voiceover |
-|---|---|
-| On the results screen, tap the sliders icon in the search bar. | "I trust some models more than others." |
-| Drag **Gemini** to the top with its handle, tap Save. | |
-| The results list now starts with Gemini. | "So I put them first." |
-
-## 11. Custom prompts, about 40s
+## 6. Put my favorite AI first, about 20s
 
 | On screen | Voiceover |
 |---|---|
-| Tap the book icon in the search bar. | "Custom prompts shape every answer." |
+| On the results, tap the sliders icon in the search bar. | "I've noticed Gemini is best at practical stuff like costs." |
+| Drag **Gemini** to the top, tap Save. | |
+| Results now start with Gemini. | "So it goes first now, every time." |
+
+## 7. Make every answer fit how I read, about 35s
+
+| On screen | Voiceover |
+|---|---|
+| Tap the book icon in the search bar. | "I also don't want essays when I'm on my phone." |
 | Select **Quick bullet summary**. | |
-| Tap **New prompt**. Name: **"For my manager"**. Prompt: **"Summarize in three bullets I can paste into Slack."** Save. | "I'll add one for status updates." |
-| Tap delete on **Business tone**, then **Undo**. | "Deleting is safe, there's an undo." |
-| Tap Save. The book icon turns blue and results show "Prompt: For my manager". | |
+| Tap **New prompt**. Name **"Travel mode"**, prompt **"Keep answers short, include rough prices in USD and flag anything I need to book ahead."** Save. | "So I made a prompt just for travel." |
+| Tap Save. The book icon turns blue and the results show "Prompt: Travel mode". | "Now every AI answers the way I like." |
 
-## 12. Explore AI agents, about 40s
+## 8. Specialist agents, about 35s
 
 | On screen | Voiceover |
 |---|---|
-| Tap **Explore AI**. Let the search placeholder type. | "Beyond search, there are specialist agents." |
-| Tap the search bar, type **"python"**. Only **Code Master** remains. | |
-| Clear the search, tap the **Education** chip, open **Study Buddy**. | |
-| Tap **Start chat**, send **"Quiz me on photosynthesis"**. | "Study Buddy turns any topic into a quiz." |
-| Tap the pencil on "New Chat", type **"Biology revision"**, Enter. | |
+| Tap **Explore AI**. Let the search placeholder type. | "There are also agents for specific jobs." |
+| Tap the **Finance** chip, open **Budget Buddy**, tap **Start chat**. | "Before this trip, I'd better sort out my budget." |
+| Send **"Help me build a monthly budget on $4,000"**. | "It splits my money into needs, wants and savings." |
+| Tap the pencil, rename the chat **"Japan savings"**. | |
 
-More scripted agent questions that get tailored answers:
+Other questions with tailored answers if you want a different agent:
 - Code Master: **"Why does my loop skip items when I remove them from a list?"**
+- Study Buddy: **"Quiz me on photosynthesis"**
 - Campaign Crafter: **"Plan a launch campaign for a fitness app"**
-- Budget Buddy: **"Help me build a monthly budget on $4,000"**
 
-## 13. Account and profiles, about 25s
+## 9. Tidy up saved items, about 30s
 
 | On screen | Voiceover |
 |---|---|
-| Tap the avatar. | "Switching profiles is one tap." |
-| Tap **Martha Doe**. The avatar changes. | |
-| Open the menu again, tap the pencil, rename to **"Family"**, Enter. | |
-| Tap **Log out**. | |
+| Saved items: tap ⋮ on **Surprise party checklist**, choose **Rename**, type **"Mia's 30th"**, OK. | |
+| Tap ⋮ on **Email asking for a raise**, choose **Move**, pick **Japan trip**... then Cancel. | "Moving things is easy too, though that one stays where it is." |
+| Tap ⋮ on **High-protein meal prep for the week**, choose **Delete**, confirm. | "And I clear out what I don't need." |
+
+## 10. Work and personal profiles, about 25s
+
+| On screen | Voiceover |
+|---|---|
+| Log out and back in (**Log in**, **johndoe@gmail.com**). "Choose your profile": tap **Work**. | "At work I switch to my Work profile." |
+| The avatar turns teal with a **W**. Tap it. | "My saved items and settings stay separate." |
+| Tap **John Doe** to switch back, then **Log out**. | |
+
+## Closing line
+
+"One question, every AI, and everything I care about saved in one place. That's internet.io."
 
 ---
 
 ## Suggested 2½ minute cut
 
-1 → 2 → 3 → 6 → 9 → 10 → 11 → 12 → 13
+1 → 2 → 3 → 4 → 6 → 7 → 8, then the closing line.
 
 ## Avoid on camera
 
+- Searching anything other than **"Plan a 5-day trip to Tokyo"**. Results always show the Tokyo answers.
 - Forgot password, Leave feedback, the Name column ⋮, and the Terms, Privacy and Contact links. They only show "coming soon".
-- Saying "side by side" for comparison. Answers are compared by switching between them, not in a split view.
-- Typing questions other than the scripted ones in search. Results always show the design system answers.
+- Saying "side by side". Answers are compared by switching between them.

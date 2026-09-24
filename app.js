@@ -5,159 +5,162 @@
 
   // ── Content ───────────────────────────────────────────────
 
-  const DEFAULT_QUERY = "What is a design system?";
+  const DEFAULT_QUERY = "Plan a 5-day trip to Tokyo";
   const PROFILE_COLORS = ["#1b51aa", "#039286", "#706aff"];
 
-  const DS_OVERVIEW = `
-    <p>A design system is a collection of reusable components, guided by clear standards, that can be assembled to build any number of applications. It serves as a single source of truth for teams, ensuring consistency and efficiency in design and development processes.</p>
-    <h4>Key Components of a Design System:</h4>
+  const TOKYO_OPENAI = `
+    <p>Five days is enough to see Tokyo's highlights without rushing. Group each day by neighborhood so you spend your time exploring, not commuting.</p>
+    <h4>Day by day</h4>
     <ol>
-      <li><strong>UI Components:</strong> These are the building blocks of a design system, including buttons, forms, icons, and other interface elements. They are designed to be reusable and adaptable across different projects.</li>
-      <li><strong>Design Guidelines:</strong> These guidelines provide instructions on how to use the components effectively. They cover aspects such as color schemes, typography, spacing, and layout principles.</li>
-      <li><strong>Documentation:</strong> Comprehensive documentation is crucial for a design system. It includes detailed descriptions of components, usage examples, and best practices to ensure that all team members can implement the system correctly.</li>
-      <li><strong>Tools and Resources:</strong> A design system often includes tools and resources that facilitate the design and development process, such as design templates, code snippets, and integration guides.</li>
+      <li><strong>Day 1, Shinjuku:</strong> Arrive, get a Suica card, walk Shinjuku Gyoen, then dinner in Omoide Yokocho and the free Tokyo Metropolitan Government observatory at night.</li>
+      <li><strong>Day 2, Asakusa and Ueno:</strong> Senso-ji early before the crowds, Nakamise street snacks, Ueno Park and Ameyoko market in the afternoon.</li>
+      <li><strong>Day 3, Shibuya and Harajuku:</strong> Meiji Shrine in the morning, Takeshita Street, Omotesando cafés, Shibuya Crossing and Shibuya Sky at sunset.</li>
+      <li><strong>Day 4, day trip:</strong> Nikko for temples and waterfalls, or Kamakura for the Great Buddha and the coast.</li>
+      <li><strong>Day 5, Tsukiji and Ginza:</strong> Breakfast at Tsukiji Outer Market, teamLab Planets, then shopping in Ginza before you fly.</li>
     </ol>
-    <h4>Benefits of a Design System:</h4>
+    <h4>Good to know</h4>
     <ol>
-      <li><strong>Consistency:</strong> By using a standardized set of components and guidelines, design systems ensure a consistent user experience across different platforms and products.</li>
-      <li><strong>Efficiency:</strong> Design systems streamline the design and development process, reducing the time and effort required to create new applications or features.</li>
-      <li><strong>Collaboration:</strong> With a shared framework, teams can collaborate more effectively, as everyone is working from the same set of standards and resources.</li>
-    </ol>
-    <p>In conclusion, a design system is an essential tool for modern design and development teams, providing a structured approach to creating cohesive and efficient digital products.</p>`;
+      <li><strong>Getting around:</strong> Trains cover everything. A Suica card in your phone's wallet works on every line.</li>
+      <li><strong>Budget:</strong> Around $150 to $250 a day covers a mid-range hotel, food and transport.</li>
+      <li><strong>Book ahead:</strong> Shibuya Sky and teamLab sell out, so reserve them a week before.</li>
+    </ol>`;
 
   const MODELS = [
     {
       key: "openai", name: "OpenAI", id: "gpt-4o", icon: "assets/icons/openai.svg",
-      title: "Understanding Design Systems: A Comprehensive Overview",
-      summary: "A design system is a collection of reusable components, guided by clear standards, that can be assembled to build any number of applications. It serves as a single source of truth for teams, ensuring consistency and efficiency in design and development processes.",
-      body: DS_OVERVIEW,
+      title: "5 days in Tokyo: a neighborhood-by-neighborhood plan",
+      summary: "Group each day by neighborhood so you explore instead of commute: Shinjuku, Asakusa and Ueno, Shibuya and Harajuku, a day trip to Nikko or Kamakura, then Tsukiji and Ginza before you fly.",
+      body: TOKYO_OPENAI,
     },
     {
       key: "meta", name: "Meta AI", id: "meta-llama-3.1", icon: "assets/icons/meta.svg",
-      title: "Understanding Design Systems: A Comprehensive Guide",
-      summary: "A design system is a unified collection of reusable components, guidelines, and assets that help create a consistent visual language and user experience across various products, platforms, and mediums. It serves as a single source of truth for designers, developers, and stakeholders, ensuring that the design is cohesive, scalable, and maintainable.",
+      title: "Tokyo in 5 days for first-time visitors",
+      summary: "Balance famous sights with slower moments. Mix Senso-ji and Shibuya Crossing with quieter spots like Yanaka's old streets and an evening in a local izakaya.",
       body: `
-        <p>A design system is a unified collection of reusable components, guidelines, and assets that help create a consistent visual language and user experience across various products, platforms, and mediums.</p>
-        <h4>What a design system includes:</h4>
+        <p>For a first visit, balance the famous sights with slower moments so the trip doesn't feel like a checklist.</p>
+        <h4>Must-sees</h4>
         <ol>
-          <li><strong>Design tokens:</strong> The smallest decisions (color, type, spacing, radius, elevation) stored as named values so they can be shared between design tools and code.</li>
-          <li><strong>Component library:</strong> Coded and designed components with documented variants, states and accessibility behavior.</li>
-          <li><strong>Patterns:</strong> Recipes for combining components to solve common problems such as forms, empty states and navigation.</li>
-          <li><strong>Voice and content:</strong> Guidance on tone, terminology and microcopy so products read as consistently as they look.</li>
+          <li><strong>Senso-ji and Asakusa:</strong> Tokyo's oldest temple, best before 8am.</li>
+          <li><strong>Shibuya Crossing:</strong> Watch it from above at Shibuya Sky or the Starbucks overlooking it.</li>
+          <li><strong>Meiji Shrine:</strong> A quiet forest walk right next to busy Harajuku.</li>
         </ol>
-        <p>It serves as a single source of truth for designers, developers, and stakeholders, ensuring that the design is cohesive, scalable, and maintainable.</p>`,
+        <h4>Slower moments</h4>
+        <ol>
+          <li><strong>Yanaka:</strong> Old wooden houses, small shops and cats. Tokyo as it was.</li>
+          <li><strong>An izakaya night:</strong> Small plates and drinks with locals in Ebisu or Koenji.</li>
+          <li><strong>A sento:</strong> Public baths are a cheap, very local way to end a long day.</li>
+        </ol>`,
     },
     {
       key: "gemini", name: "Gemini", id: "gemini-1.5 pro", icon: "assets/icons/gemini.svg",
-      title: "Design System: A Comprehensive Guide",
-      summary: "A design system is a collection of reusable components, guided by clear standards, that can be assembled together to build any number of applications. It serves as a single source of truth for designers and developers, ensuring consistency across products.",
+      title: "Your Tokyo trip: itinerary, costs and tips",
+      summary: "A practical plan with estimated costs: about $1,400 for five days including a mid-range hotel, food, transport and two paid attractions, plus when to book what.",
       body: `
-        <p>A design system is a collection of reusable components, guided by clear standards, that can be assembled together to build any number of applications.</p>
-        <h4>Core layers:</h4>
+        <p>Here's a practical plan with rough costs for one person, excluding flights.</p>
+        <h4>Estimated budget for 5 days</h4>
         <ol>
-          <li><strong>Foundations:</strong> Color, typography, grids, iconography and motion principles.</li>
-          <li><strong>Components:</strong> Buttons, inputs, cards, dialogs and navigation, each with defined states.</li>
-          <li><strong>Governance:</strong> A contribution model, versioning and a team that owns the system.</li>
+          <li><strong>Hotel:</strong> $110 a night in Shinjuku or Ueno, about $550.</li>
+          <li><strong>Food:</strong> $45 a day mixing ramen, konbini breakfasts and one nice dinner, about $225.</li>
+          <li><strong>Transport:</strong> Suica top-ups and a day-trip ticket, about $90.</li>
+          <li><strong>Attractions:</strong> teamLab, Shibuya Sky and temples, about $80.</li>
         </ol>
-        <h4>Why teams invest in one:</h4>
+        <h4>When to book</h4>
         <ol>
-          <li><strong>Speed:</strong> Teams stop rebuilding the same UI and ship features faster.</li>
-          <li><strong>Quality:</strong> Accessibility and edge cases are solved once, in one place.</li>
-          <li><strong>Scale:</strong> New products and platforms inherit a consistent experience by default.</li>
+          <li><strong>2 months ahead:</strong> Hotels, especially in spring and autumn.</li>
+          <li><strong>1 week ahead:</strong> teamLab Planets and Shibuya Sky time slots.</li>
+          <li><strong>On arrival:</strong> Everything else. Walk-ins are easy almost everywhere.</li>
         </ol>`,
     },
     {
       key: "azure", name: "Azure AI", id: "azure-model", icon: "assets/icons/azure.svg",
-      title: "Design Systems Explained for Product Teams",
-      summary: "A design system combines a shared component library, design tokens and usage guidelines so product teams can build consistent interfaces quickly. It connects design tools like Figma with production code.",
+      title: "A relaxed 5-day Tokyo itinerary",
+      summary: "One big sight per day with plenty of downtime: mornings for temples and gardens, afternoons for cafés and neighborhoods, evenings for food.",
       body: `
-        <p>A design system combines a shared component library, design tokens and usage guidelines so product teams can build consistent interfaces quickly.</p>
-        <h4>How it connects design and code:</h4>
+        <p>If you prefer a slower pace, plan one big sight per day and leave room to wander.</p>
         <ol>
-          <li><strong>Figma library:</strong> Components and variables published for designers.</li>
-          <li><strong>Code package:</strong> The same components implemented in the product's framework.</li>
-          <li><strong>Token pipeline:</strong> Variables exported from design and transformed into CSS, iOS and Android values.</li>
+          <li><strong>Mornings:</strong> Temples and gardens before the crowds: Senso-ji, Meiji Shrine, Rikugien.</li>
+          <li><strong>Afternoons:</strong> Coffee and browsing in Kichijoji, Shimokitazawa or Nakameguro.</li>
+          <li><strong>Evenings:</strong> Food streets like Omoide Yokocho, or a sushi counter in Ginza.</li>
         </ol>
-        <p>Keeping all three in sync is what turns a UI kit into a design system.</p>`,
+        <p>Keep day 4 free. Tokyo rewards spontaneity.</p>`,
     },
     {
       key: "perplexity", name: "Perplexity", id: "llama-3.1-sonar", icon: "assets/icons/perplexity.svg",
-      title: "What Is a Design System? Definition and Examples",
-      summary: "A design system is a set of standards, documentation and reusable components that guide how a product is designed and built. Well-known examples include Google's Material Design, IBM Carbon and Shopify Polaris.",
+      title: "Top things to do in Tokyo, with sources",
+      summary: "The most recommended experiences across travel guides: Senso-ji, Shibuya Sky, teamLab Planets, Tsukiji Outer Market and a day trip to Nikko or Mount Fuji.",
       body: `
-        <p>A design system is a set of standards, documentation and reusable components that guide how a product is designed and built.</p>
-        <h4>Well-known examples:</h4>
+        <p>These are the experiences travel guides recommend most often for a 5-day stay:</p>
         <ol>
-          <li><strong>Material Design</strong> (Google): a cross-platform system with detailed motion and elevation guidance.</li>
-          <li><strong>Carbon</strong> (IBM): an open-source system focused on enterprise products and accessibility.</li>
-          <li><strong>Polaris</strong> (Shopify): known for strong content and voice guidelines alongside components.</li>
+          <li><strong>Senso-ji, Asakusa:</strong> Tokyo's oldest temple [1].</li>
+          <li><strong>Shibuya Sky:</strong> Open-air rooftop with views of the crossing [2].</li>
+          <li><strong>teamLab Planets:</strong> Immersive digital art you walk through barefoot [3].</li>
+          <li><strong>Tsukiji Outer Market:</strong> Fresh sushi and street food for breakfast [1].</li>
+          <li><strong>Day trip:</strong> Nikko or Lake Kawaguchiko for views of Mount Fuji [4].</li>
         </ol>
-        <p>Studying public systems like these is a good way to decide what your own system needs.</p>`,
+        <p>Sources: [1] Japan National Tourism Organization, [2] Shibuya Sky, [3] teamLab, [4] Lonely Planet.</p>`,
     },
     {
       key: "anthropic", name: "Anthropic", id: "claude-3-5-sonnet", icon: "assets/icons/anthropic.svg",
-      title: "Design Systems: Purpose, Parts and Pitfalls",
-      summary: "A design system is the shared language a product team uses to design and build interfaces: tokens, components, patterns and the documentation that explains when to use each. Its value comes from adoption, not from the library itself.",
+      title: "Planning Tokyo: what to prioritize",
+      summary: "Decide what kind of trip you want first. Food lovers, culture seekers and shoppers would plan very different weeks, so here's how to shape five days around your priorities.",
       body: `
-        <p>A design system is the shared language a product team uses to design and build interfaces: tokens, components, patterns and the documentation that explains when to use each.</p>
-        <h4>Common pitfalls:</h4>
+        <p>Before picking sights, decide what kind of trip you want. Five days goes further when it has a focus.</p>
         <ol>
-          <li><strong>Building in isolation:</strong> Systems made without product teams tend to go unused.</li>
-          <li><strong>Over-scoping:</strong> Start with the components teams already use most, not every possible one.</li>
-          <li><strong>No ownership:</strong> Without maintainers, the system drifts from the product.</li>
+          <li><strong>If you love food:</strong> Base yourself near Shinjuku or Shibuya and plan around markets, depachika food halls and a kaiseki dinner.</li>
+          <li><strong>If you love culture:</strong> Stay in Ueno or Asakusa, add museums and a day in Nikko.</li>
+          <li><strong>If you love shopping:</strong> Harajuku, Shimokitazawa for vintage, Akihabara for tech and games.</li>
         </ol>
-        <p>Its value comes from adoption, not from the library itself.</p>`,
+        <p>Tell me which sounds most like you and I'll tailor the days.</p>`,
     },
     {
       key: "cohere", name: "Cohere", id: "command-r-plus", icon: "assets/icons/cohere.svg",
-      title: "Design System Basics",
-      summary: "A design system is a library of reusable UI components and the rules for using them, maintained as a product that serves other teams. It improves consistency, speeds up delivery and makes accessibility easier to get right.",
+      title: "Tokyo 5-day plan: quick version",
+      summary: "Day 1 Shinjuku, day 2 Asakusa, day 3 Shibuya and Harajuku, day 4 a day trip, day 5 Ginza. Get a Suica card and book teamLab in advance.",
       body: `
-        <p>A design system is a library of reusable UI components and the rules for using them, maintained as a product that serves other teams.</p>
-        <h4>Getting started:</h4>
         <ol>
-          <li><strong>Audit:</strong> Inventory the UI you already have and find duplicates.</li>
-          <li><strong>Define tokens:</strong> Agree on color, type and spacing scales first.</li>
-          <li><strong>Build the top ten:</strong> Ship the most-used components, then iterate.</li>
+          <li><strong>Day 1:</strong> Shinjuku, Omoide Yokocho, free city views.</li>
+          <li><strong>Day 2:</strong> Asakusa, Senso-ji, Ueno Park.</li>
+          <li><strong>Day 3:</strong> Harajuku, Meiji Shrine, Shibuya Crossing.</li>
+          <li><strong>Day 4:</strong> Day trip to Kamakura or Nikko.</li>
+          <li><strong>Day 5:</strong> Tsukiji breakfast, Ginza, departure.</li>
         </ol>
-        <p>It improves consistency, speeds up delivery and makes accessibility easier to get right.</p>`,
+        <p>Get a Suica card on arrival and book teamLab Planets in advance.</p>`,
     },
   ];
 
-  const PLAN_QUESTION = "Make me a plan to create a design system in 2 weeks. I want to create it on Figma using variables and create a documentation web page on Confluence.";
+  const PLAN_QUESTION = "Can you make it cheaper? My budget is $1,000 without flights.";
   const PLAN_ANSWER = `
-    <p>Here's a focused two-week plan:</p>
-    <h4>Week 1: Foundations in Figma</h4>
+    <p>You can do Tokyo well on $1,000 for five days. Here's how the budget version changes:</p>
+    <h4>Where the savings come from</h4>
     <ol>
-      <li><strong>Days 1–2:</strong> Audit existing screens and list the colors, type styles, spacing and components in use.</li>
-      <li><strong>Days 3–4:</strong> Create variable collections for primitives (raw colors, spacing) and semantic tokens (text, surface, border) with light and dark modes.</li>
-      <li><strong>Day 5:</strong> Build the core components (button, input, checkbox, card) bound to your variables.</li>
+      <li><strong>Stay:</strong> A capsule or business hotel in Ueno at about $60 a night, $300 total.</li>
+      <li><strong>Food:</strong> Konbini breakfasts, ramen and teishoku lunches, one izakaya night. About $30 a day, $150 total.</li>
+      <li><strong>Sights:</strong> Swap Shibuya Sky for the free Metropolitan Government observatory, and Nikko for Kamakura, which is closer and cheaper.</li>
     </ol>
-    <h4>Week 2: Components and documentation</h4>
+    <h4>Your new total</h4>
     <ol>
-      <li><strong>Days 6–8:</strong> Add navigation, modal, toast and list components with variants and states.</li>
-      <li><strong>Day 9:</strong> Create a Confluence space with pages for foundations, each component and contribution guidelines.</li>
-      <li><strong>Day 10:</strong> Publish the Figma library, share the Confluence page and gather feedback from one product team.</li>
+      <li><strong>Stay, food and transport:</strong> about $540.</li>
+      <li><strong>teamLab and Kamakura:</strong> about $60.</li>
+      <li><strong>Left for shopping and extras:</strong> about $400.</li>
     </ol>`;
 
   const ADOPTION_ANSWER = `
-    <p>Adoption is where most design systems succeed or stall. What works for small teams:</p>
+    <p>In mid-April Tokyo is mild, usually 12 to 20°C, with a chance of rain.</p>
     <ol>
-      <li><strong>Start with one product team:</strong> Pair with them on a real feature and fix what slows them down.</li>
-      <li><strong>Make the easy path the right path:</strong> Publish the Figma library and components so using the system is faster than not using it.</li>
-      <li><strong>Show progress:</strong> Share a short changelog every two weeks with before and after screenshots.</li>
-      <li><strong>Collect feedback in one place:</strong> A single Slack channel or form keeps requests visible.</li>
-    </ol>
-    <p>Want a template for the changelog?</p>`;
+      <li><strong>Layers:</strong> T-shirts, a light sweater and a packable rain jacket.</li>
+      <li><strong>Comfortable shoes:</strong> You'll walk 15,000 steps a day, and temples ask you to remove them, so slip-ons help.</li>
+      <li><strong>Essentials:</strong> A small coin purse, a portable charger and a pocket Wi-Fi or eSIM.</li>
+      <li><strong>Leave room:</strong> You'll want space for snacks and souvenirs on the way home.</li>
+    </ol>`;
 
   const FOLLOW_UP_ANSWER = (q) => `
-    <p>Building on the answer above, here's a practical way to approach <strong>${escapeHtml(q.replace(/\?+$/, ""))}</strong>:</p>
+    <p>Good question. Building on the plan above, here's what I'd suggest for <strong>${escapeHtml(q.replace(/\?+$/, ""))}</strong>:</p>
     <ol>
-      <li><strong>Start small:</strong> Focus on the pieces your team uses most often and document them well.</li>
-      <li><strong>Make it shared:</strong> Keep design and code in sync so everyone works from the same source of truth.</li>
-      <li><strong>Iterate:</strong> Collect feedback regularly and version your changes so teams can adopt them safely.</li>
+      <li><strong>Keep it close:</strong> Pick options near the neighborhoods you're already visiting that day.</li>
+      <li><strong>Check timing:</strong> Popular spots are quietest right at opening.</li>
+      <li><strong>Book what sells out:</strong> Reserve anything with timed entry a week ahead.</li>
     </ol>
-    <p>Want me to turn this into a checklist you can share with your team?</p>`;
+    <p>Want me to add this to your day-by-day plan?</p>`;
 
   const AGENT_ANSWER = (a, q) => a.reply && a.demo && q.trim().toLowerCase() === a.demo.toLowerCase() ? a.reply : `
     <p>Happy to help. I'm <strong>${escapeHtml(a.name)}</strong>. Here's how I'd tackle <strong>${escapeHtml(q.replace(/\?+$/, ""))}</strong>:</p>
@@ -214,36 +217,39 @@
     ds: {
       id: "ds", model: "openai", title: MODELS[0].title,
       messages: [
-        { from: "ai", html: DS_OVERVIEW },
+        { from: "ai", html: TOKYO_OPENAI },
         { from: "user", text: PLAN_QUESTION },
         { from: "ai", html: PLAN_ANSWER },
       ],
       saved: true,
     },
-    excel1: { id: "excel1", model: "perplexity", title: "Excel formula tips", messages: [
-      { from: "ai", html: "<p>Use <strong>XLOOKUP</strong> instead of VLOOKUP: it searches in any direction, defaults to exact matches and doesn't break when columns are inserted.</p>" },
+    meal: { id: "meal", model: "gemini", title: "High-protein meal prep for the week", messages: [
+      { from: "ai", html: "<p>Cook once on Sunday, eat well all week:</p><ol><li><strong>Protein:</strong> Bake 1kg of chicken thighs with paprika and garlic.</li><li><strong>Carbs:</strong> A big pot of rice and a tray of roasted sweet potato.</li><li><strong>Veg:</strong> Roast broccoli and peppers; keep a bag of spinach for fresh sides.</li><li><strong>Sauces:</strong> Yogurt garlic sauce and a quick peanut dressing keep it from getting boring.</li></ol><p>That's about 40g of protein per box, five lunches in under two hours.</p>" },
     ], saved: true },
-    tax: { id: "tax", model: "gemini", title: "Tax in Australia", messages: [
-      { from: "ai", html: "<p>The Australian financial year runs from <strong>1 July to 30 June</strong>. Individual tax returns are due by 31 October if you lodge yourself, or later if you use a registered tax agent.</p>" },
+    raise: { id: "raise", model: "anthropic", title: "Email asking for a raise", messages: [
+      { from: "ai", html: "<p><strong>Subject:</strong> Time to talk about my compensation</p><p>Hi Sarah,</p><p>Over the past year I've led the checkout redesign, which lifted conversion by 12%, and I've taken on onboarding for two new team members. I'd like to discuss adjusting my salary to reflect this. Could we find 30 minutes next week?</p><p>Thanks,<br>John</p>" },
     ], saved: true },
     party: { id: "party", kind: "message", model: "openai", title: "Surprise party checklist", messages: [
-      { from: "ai", html: "<p>Here's how to throw the perfect surprise birthday party:</p><h4>Planning the basics</h4><p>Choose a date and time close to the guest of honor's actual birthday, but consider picking a day slightly before to maximize the surprise element. Select a venue that fits the party size and theme: this could be your home, a rented space, or even an outdoor location.</p><h4>Keeping it secret</h4><p>Enlist help from close friends and family to maintain the surprise. Create a believable \"cover story\" to explain any suspicious behavior or to get the guest of honor to the party location. Be careful with social media posts that could tip off the birthday person.</p><h4>Invitations and guest list</h4><p>Send invitations privately, at least two weeks ahead, and ask guests to arrive 30 minutes before the guest of honor.</p>" },
+      { from: "ai", html: "<p>Here's how to throw a great surprise birthday party:</p><h4>Planning the basics</h4><p>Pick a date a few days before the real birthday so it's a genuine surprise, and choose a venue that fits the group: your place, a private room at a restaurant, or a park.</p><h4>Keeping it secret</h4><p>Bring one close friend in to help, agree on a believable cover story to get the guest of honor there, and keep it off social media.</p><h4>Invitations and guest list</h4><p>Send invites privately two weeks ahead and ask everyone to arrive 30 minutes early.</p>" },
     ], saved: true },
-    filter: { id: "filter", kind: "message", model: "perplexity", title: "FILTER with multiple criteria", messages: [
-      { from: "ai", html: "<p>Use <strong>FILTER</strong> to return every row that matches a condition:</p><p><code>=FILTER(A2:C100, (B2:B100=\"Invoice\")*(C2:C100&gt;500))</code></p><p>Multiply conditions for AND, add them for OR. The result spills automatically, so leave room below the formula.</p>" },
+    shinkansen: { id: "shinkansen", kind: "message", model: "perplexity", title: "Is the JR Pass worth it?", messages: [
+      { from: "ai", html: "<p>For a Tokyo-only trip with one day trip, <strong>no</strong>. After the 2023 price rise, a 7-day JR Pass costs about $330, while individual tickets for Tokyo plus Nikko or Kamakura come to under $80.</p><p>It only pays off if you're also going to Kyoto and Osaka.</p>" },
     ], saved: true },
-    excel2: { id: "excel2", model: "perplexity", title: "SUMIFS for invoice totals", messages: [
-      { from: "ai", html: "<p>To sum values that meet a condition, use <strong>SUMIFS</strong>, e.g. <code>=SUMIFS(C:C, A:A, \"Invoice\", B:B, \"&gt;=1/7/2024\")</code>.</p>" },
+    ryokan: { id: "ryokan", model: "gemini", title: "Best ryokan near Tokyo under $200", messages: [
+      { from: "ai", html: "<p>Three well-reviewed options within two hours of Tokyo:</p><ol><li><strong>Hakone:</strong> Private onsen rooms from about $180 a night with dinner.</li><li><strong>Nikko:</strong> Riverside ryokan near the temples, about $150.</li><li><strong>Kawaguchiko:</strong> Mount Fuji views from the bath, about $190.</li></ol>" },
+    ], saved: true },
+    budget: { id: "budget", model: "openai", title: "Excel formula to track trip spending", messages: [
+      { from: "ai", html: "<p>Use <strong>SUMIFS</strong> to total spending by category, e.g. <code>=SUMIFS(C:C, B:B, \"Food\")</code>. Add a <strong>Currency</strong> column and multiply by the yen rate to see everything in dollars.</p>" },
     ], saved: true },
   });
 
   const seedFolders = () => ({
-    root: ["ds", "excel1", "party"],
-    folders: [{ id: "accounting", name: "Accounting", items: ["filter", "tax", "excel2"] }],
+    root: ["meal", "raise", "party"],
+    folders: [{ id: "japan", name: "Japan trip", items: ["ds", "shinkansen", "ryokan", "budget"] }],
   });
 
   // Bump when seed data changes; `?reset` in the URL also restores it (handy between video takes).
-  const DATA_VERSION = 2;
+  const DATA_VERSION = 3;
   if (location.search.includes("reset") || store.get("iio.v", 0) !== DATA_VERSION) {
     ["iio.conversations", "iio.folders", "iio.user", "iio.tipOff", "iio.modelOrder", "iio.prompts", "iio.activePrompt"].forEach((k) => { try { localStorage.removeItem(k); } catch { /* ignore */ } });
     store.set("iio.v", DATA_VERSION);
@@ -447,7 +453,7 @@
       go(`#/results?q=${encodeURIComponent(q)}`);
     });
     // Tapping into an empty field pre-fills the demo query so the flow is one tap away.
-    typewriter(form.q, ["What is a design system?", "Compare Figma variables and styles", "How do I learn SQL in 30 days?", "Plan a surprise party for 20 people"]);
+    typewriter(form.q, ["Plan a 5-day trip to Tokyo", "Healthy dinners under 30 minutes", "How do I ask for a raise?", "Best laptop for students in 2026"]);
   }
 
   function resultItem(m, i) {
@@ -646,8 +652,8 @@
     if (state.signedIn && !convo.saved) saveConversation(convo, { quiet: true });
 
     setTimeout(() => {
-      const isPlan = /plan|2 weeks|two weeks|figma|confluence/i.test(text);
-      const isAdoption = /adopt|team.*use|get .*team|buy-in/i.test(text);
+      const isPlan = /cheap|budget|afford|\$ ?1,?000|save money/i.test(text);
+      const isAdoption = /pack|wear|weather|bring/i.test(text);
       const msg = { from: "ai", html: convo.agent ? AGENT_ANSWER(agentByKey(convo.agent), text) : isPlan ? PLAN_ANSWER : isAdoption ? ADOPTION_ANSWER : FOLLOW_UP_ANSWER(text) };
       convo.messages.push(msg);
       typingEl.outerHTML = renderMessage(msg);
