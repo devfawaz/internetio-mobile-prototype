@@ -8,8 +8,10 @@ A clickable mobile prototype of **internet.io**, a search product that asks seve
 
 - **Search → Results → Answer:** answers from 7 models (OpenAI, Meta, Gemini, Azure, Perplexity, Anthropic, Cohere). Step through them with Prev / Next.
 - **Ask follow-up:** opens a conversation with a simulated AI reply.
-- **Signed out vs signed in:** start as a guest (Login / Sign up, one free follow-up, sign-up banner). Sign in from the sheet to unlock Chats, saving and unlimited follow-ups. Sign out from the avatar menu.
+- **Sign up:** email sign-up → create your first profile, or Continue with Google / Facebook → "Almost there" details → profile. Adapted for mobile from the desktop design. Login screen included.
+- **Signed out vs signed in:** guests get one free follow-up and a sign-up banner; saving, Chats and unlimited follow-ups need an account. After signing up you return to where you left off. Sign out from the avatar menu.
 - **Chats:** folder tree with expandable folders, new folders and saved conversations.
+- **Explore AI:** browse agents by category, open an agent's details and start a chat with it (rename the chat with the pencil). Agent names, creators and stats are example content.
 
 Best viewed on a phone, or in a desktop browser where it renders at iPhone size with an iOS status bar and home indicator.
 

@@ -148,12 +148,43 @@
     </ol>
     <p>Want me to turn this into a checklist you can share with your team?</p>`;
 
+  const AGENT_ANSWER = (a, q) => `
+    <p>Happy to help — I'm <strong>${escapeHtml(a.name)}</strong>. Here's how I'd tackle <strong>${escapeHtml(q.replace(/\?+$/, ""))}</strong>:</p>
+    <ol>
+      <li><strong>Clarify the goal:</strong> What does a great result look like, and who is it for?</li>
+      <li><strong>Draft quickly:</strong> I'll give you a first version you can react to.</li>
+      <li><strong>Refine together:</strong> Tell me what to change and I'll iterate.</li>
+    </ol>
+    <p>Share any details or examples and I'll get started.</p>`;
+
+  // Example agents for the Explore AI screen. Names, creators and stats are
+  // invented placeholders; icons are Material Symbols on tinted tiles.
+  const AGENT_CATEGORIES = ["All", "Marketing", "Sales", "Education", "Productivity", "Data Analysis", "Finance", "Writing", "Programming"];
   const AGENTS = [
-    { emoji: "✍️", name: "Writing Coach", text: "Tightens drafts, fixes tone and suggests stronger openings." },
-    { emoji: "🚀", name: "Startup Advisor", text: "Pressure-tests ideas, pricing and go-to-market plans." },
-    { emoji: "🔥", name: "Roastbot", text: "Brutally honest feedback on your landing page or pitch." },
-    { emoji: "📊", name: "Excel Helper", text: "Writes formulas and explains them step by step." },
-    { emoji: "🧾", name: "Tax Explainer", text: "Plain-English answers about Australian tax basics." },
+    { key: "code-master", name: "Code Master", by: "John Doe", cat: "Programming", icon: "code", bg: "#e8f0fe", fg: "#1b51aa", rating: "4.8", convos: "12K+",
+      text: "A highly sophisticated GPT tailored for Python, optimized for both /canvas and /notebook. See the new /commands. Code like a master." },
+    { key: "campaign-crafter", name: "Campaign Crafter", by: "Maya Chen", cat: "Marketing", icon: "campaign", bg: "#fff8bb", fg: "#b4a200", rating: "4.6", convos: "8.4K",
+      text: "Plans multi-channel campaigns and writes on-brand copy for every channel, from ads to launch emails." },
+    { key: "deal-closer", name: "Deal Closer", by: "Ravi Patel", cat: "Sales", icon: "handshake", bg: "#e6f4ea", fg: "#1e8e3e", rating: "4.5", convos: "5.1K",
+      text: "Drafts follow-up emails, handles objections and preps talking points before every sales call." },
+    { key: "study-buddy", name: "Study Buddy", by: "Lena Ortiz", cat: "Education", icon: "school", bg: "#fce8f3", fg: "#c2185b", rating: "4.9", convos: "21K+",
+      text: "Turns any topic into flashcards, practice quizzes and plain-English explanations." },
+    { key: "focus-planner", name: "Focus Planner", by: "Sam Okafor", cat: "Productivity", icon: "bolt", bg: "#fff3e0", fg: "#e65100", rating: "4.7", convos: "9.8K",
+      text: "Breaks big goals into a realistic daily plan and nudges you back on track when things slip." },
+    { key: "chart-whisperer", name: "Chart Whisperer", by: "Priya Nair", cat: "Data Analysis", icon: "insights", bg: "#e0f7fa", fg: "#00838f", rating: "4.6", convos: "6.2K",
+      text: "Explains spreadsheets, spots trends and recommends the right chart for your data." },
+    { key: "budget-buddy", name: "Budget Buddy", by: "Tom Walsh", cat: "Finance", icon: "savings", bg: "#ede7f6", fg: "#5e35b1", rating: "4.4", convos: "3.9K",
+      text: "Builds monthly budgets, sorts your spending into categories and explains tax basics simply." },
+    { key: "story-spark", name: "Story Spark", by: "Aiko Tanaka", cat: "Writing", icon: "edit_note", bg: "#ffebee", fg: "#c62828", rating: "4.8", convos: "15K+",
+      text: "Brainstorms plots, sharpens dialogue and fixes pacing in your short stories and scripts." },
+    { key: "pitch-polisher", name: "Pitch Polisher", by: "Noah Brooks", cat: "Marketing", icon: "rocket_launch", bg: "#e3f2fd", fg: "#1565c0", rating: "4.5", convos: "4.7K",
+      text: "Pressure-tests your startup pitch and rewrites each slide so investors get the point in seconds." },
+    { key: "lesson-planner", name: "Lesson Planner", by: "Grace Liu", cat: "Education", icon: "menu_book", bg: "#f1f8e9", fg: "#558b2f", rating: "4.7", convos: "7.3K",
+      text: "Creates lesson plans, activities and rubrics for any grade level in minutes." },
+    { key: "inbox-zero", name: "Inbox Zero", by: "Dan Moreau", cat: "Productivity", icon: "mail", bg: "#fbe9e7", fg: "#d84315", rating: "4.3", convos: "2.8K",
+      text: "Summarises long threads, drafts replies and suggests what can safely wait." },
+    { key: "sql-sidekick", name: "SQL Sidekick", by: "Omar Haddad", cat: "Programming", icon: "database", bg: "#eceff1", fg: "#455a64", rating: "4.6", convos: "5.5K",
+      text: "Writes and explains SQL queries, and spots why a slow query is slow." },
   ];
 
   // ── State ─────────────────────────────────────────────────
@@ -197,6 +228,10 @@
 
   const state = {
     signedIn: store.get("iio.signedIn", false),
+    user: store.get("iio.user", null) || { first: "John", last: "Doe", email: "johndoe@example.com", profile: "John Doe" },
+    signup: {},
+    returnTo: "#/",
+    exploreCat: "All",
     conversations: store.get("iio.conversations", null) || seedConversations(),
     folders: store.get("iio.folders", null) || seedFolders(),
     guestFollowUps: 0,
@@ -205,6 +240,7 @@
 
   const persist = () => {
     store.set("iio.signedIn", state.signedIn);
+    store.set("iio.user", state.user);
     store.set("iio.conversations", state.conversations);
     store.set("iio.folders", state.folders);
   };
@@ -223,6 +259,10 @@
   }
 
   const modelByKey = (key) => MODELS.find((m) => m.key === key) || MODELS[0];
+  const agentByKey = (key) => AGENTS.find((a) => a.key === key) || AGENTS[0];
+  const initials = (u) => `${(u.first || "?")[0]}${(u.last || "")[0] || ""}`.toUpperCase();
+  const agentTile = (a, size = 40) =>
+    `<span class="agent-tile" style="--tile-bg:${a.bg};--tile-fg:${a.fg};--tile:${size}px" aria-hidden="true"><span class="ms">${a.icon}</span></span>`;
   const icon = (name, cls = "") => `<span class="ms ${cls}" aria-hidden="true">${name}</span>`;
 
   let toastTimer;
@@ -247,7 +287,7 @@
 
   function authControls() {
     return state.signedIn
-      ? `<button class="avatar" id="avatar-btn" aria-label="Account menu" aria-haspopup="menu">JD</button>`
+      ? `<button class="avatar" id="avatar-btn" aria-label="Account menu" aria-haspopup="menu">${escapeHtml(initials(state.user))}</button>`
       : `<div class="auth-buttons">
            <button class="btn btn-secondary" data-auth="login">Login</button>
            <button class="btn btn-primary" data-auth="signup">Sign up</button>
@@ -414,12 +454,33 @@
       convo = { id: `c${Date.now()}`, model: m.key, title: m.title, messages: [{ from: "ai", html: m.body }], saved: false };
       state.conversations[convo.id] = convo;
       history.replaceState(null, "", `#/chat/${convo.id}`);
+    } else if (id === "agent") {
+      const a = agentByKey(params.get("a"));
+      convo = { id: `c${Date.now()}`, agent: a.key, title: "New Chat", messages: [], saved: false };
+      state.conversations[convo.id] = convo;
+      history.replaceState(null, "", `#/chat/${convo.id}`);
     } else {
       convo = state.conversations[id];
       if (!convo) return go("#/chats");
     }
-    const m = modelByKey(convo.model);
     renderTopbar();
+    let titleBlock;
+    if (convo.agent) {
+      const a = agentByKey(convo.agent);
+      titleBlock = `<div class="convo-title agent-title">
+            ${agentTile(a, 32)}
+            <div>
+              <div class="title-row"><h3 id="convo-name">${escapeHtml(convo.title)}</h3><button class="icon-btn" data-rename aria-label="Rename chat">${icon("edit")}</button></div>
+              <span class="agent-by">${escapeHtml(a.name)}</span>
+            </div>
+          </div>`;
+    } else {
+      const m = modelByKey(convo.model);
+      titleBlock = `<div class="convo-title">
+            <img class="model-icon" src="${m.icon}" alt="${m.name}" width="36" height="36">
+            <div><h3>${escapeHtml(convo.title)}</h3><span>${m.id}</span></div>
+          </div>`;
+    }
 
     screen.innerHTML = `<div class="view convo-wrap">
       <section class="convo" aria-label="Conversation">
@@ -429,10 +490,7 @@
           <button class="icon-btn md" data-soon="Conversation options" aria-label="More options">${icon("more_vert")}</button>
         </div>
         <div class="convo-body" id="convo-body">
-          <div class="convo-title">
-            <img class="model-icon" src="${m.icon}" alt="${m.name}" width="36" height="36">
-            <div><h3>${escapeHtml(convo.title)}</h3><span>${m.id}</span></div>
-          </div>
+          ${titleBlock}
           ${convo.messages.map(renderMessage).join("")}
         </div>
       </section>
@@ -442,7 +500,7 @@
     const guest = !state.signedIn;
     setDock(`<div class="input-dock${guest ? " guest" : ""}">
       <form class="composer" id="composer">
-        <input name="msg" placeholder="Type your follow-up question" aria-label="Follow-up question" autocomplete="off" enterkeyhint="send">
+        <input name="msg" placeholder="${convo.agent && !convo.messages.length ? `Message ${escapeHtml(agentByKey(convo.agent).name)}` : "Type your follow-up question"}" aria-label="Follow-up question" autocomplete="off" enterkeyhint="send">
         <button class="send" type="submit" aria-label="Send" disabled>${icon("arrow_forward")}</button>
       </form>
       ${guest ? `<div class="signup-banner"><p>Sign up now to save, organise &amp; ask unlimited follow-ups.</p><button class="btn btn-primary" data-auth="signup">Get started</button></div>` : ""}
@@ -456,7 +514,7 @@
       const text = form.msg.value.trim();
       if (!text) return;
       if (guest && state.guestFollowUps >= 1) {
-        openSheet("Sign up for unlimited follow-ups", "Guests get one free follow-up. Sign up to keep the conversation going.");
+        openGate("Sign up for unlimited follow-ups", "Guests get one free follow-up. Sign up to keep the conversation going.");
         return;
       }
       if (guest) state.guestFollowUps++;
@@ -480,7 +538,7 @@
 
     setTimeout(() => {
       const isPlan = /plan|2 weeks|two weeks|figma|confluence/i.test(text);
-      const msg = { from: "ai", html: isPlan ? PLAN_ANSWER : FOLLOW_UP_ANSWER(text) };
+      const msg = { from: "ai", html: convo.agent ? AGENT_ANSWER(agentByKey(convo.agent), text) : isPlan ? PLAN_ANSWER : FOLLOW_UP_ANSWER(text) };
       convo.messages.push(msg);
       typingEl.outerHTML = renderMessage(msg);
       syncSaveChips(convo);
@@ -515,10 +573,10 @@
   function convoRow(id, cls = "leaf") {
     const c = state.conversations[id];
     if (!c) return "";
-    const m = modelByKey(c.model);
     const isNew = state.justAdded === id;
+    const iconHtml = c.agent ? agentTile(agentByKey(c.agent), 20) : `<img class="conv-icon" src="${modelByKey(c.model).icon}" alt="" width="20" height="20">`;
     return `<li><a class="tree-row ${cls}${isNew ? " is-new" : ""}" href="#/chat/${id}">
-      <img class="conv-icon" src="${m.icon}" alt="" width="20" height="20">
+      ${iconHtml}
       <span class="label">${escapeHtml(c.title)}</span>
     </a></li>`;
   }
@@ -526,7 +584,7 @@
   function viewChats() {
     if (!state.signedIn) {
       go("#/");
-      openSheet("Sign in to see your saved chats", "Save answers from any AI model and organise them into folders.");
+      openGate("Sign in to see your saved chats", "Save answers from any AI model and organise them into folders.");
       return;
     }
     renderTopbar();
@@ -565,18 +623,192 @@
     state.justAdded = null;
   }
 
+  function agentCard(a) {
+    return `<li><button class="agent-card" data-agent="${a.key}">
+      ${agentTile(a)}
+      <span class="agent-body">
+        <span class="agent-name">${escapeHtml(a.name)}</span>
+        <span class="agent-by">By ${escapeHtml(a.by)}</span>
+        <span class="agent-text">${escapeHtml(a.text)}</span>
+      </span>
+    </button></li>`;
+  }
+
   function viewExplore() {
     renderTopbar();
+    const cat = state.exploreCat;
+    const list = AGENTS.filter((a) => cat === "All" || a.cat === cat);
     screen.innerHTML = `<div class="view explore">
-      <h2>Explore AI agents</h2>
-      <p>Need a writing coach? Startup advisor? Roastbot? Pick an agent with its own tone, role and mindset.</p>
-      <ul class="agent-list">
-        ${AGENTS.map((a) => `<li><button class="agent" style="width:100%;text-align:left" data-soon="${a.name} — coming soon">
-          <span class="agent-emoji" aria-hidden="true">${a.emoji}</span>
-          <span><h3>${a.name}</h3><p>${a.text}</p></span>
-        </button></li>`).join("")}
-      </ul>
+      <section class="agents-panel" aria-label="AI agents">
+        <div class="agents-head">
+          <div class="cat-chips" role="tablist" aria-label="Categories">
+            ${AGENT_CATEGORIES.map((c) => `<button class="cat-chip${c === cat ? " is-on" : ""}" role="tab" aria-selected="${c === cat}" data-cat="${c}">${c}</button>`).join("")}
+          </div>
+        </div>
+        <ul class="agent-grid">${list.map(agentCard).join("")}</ul>
+      </section>
     </div>`;
+    const on = screen.querySelector(".cat-chip.is-on");
+    if (on && cat !== "All") on.scrollIntoView({ block: "nearest", inline: "center" });
+  }
+
+  function openAgent(key) {
+    const a = agentByKey(key);
+    const wrap = document.createElement("div");
+    wrap.className = "modal-backdrop";
+    wrap.id = "agent-modal";
+    wrap.innerHTML = `<section class="agent-dialog" role="dialog" aria-modal="true" aria-labelledby="agent-dialog-name">
+      <button class="icon-btn agent-close" data-close-agent aria-label="Close">${icon("close")}</button>
+      <div class="agent-dialog-head">
+        ${agentTile(a)}
+        <div><h2 id="agent-dialog-name">${escapeHtml(a.name)}</h2><span class="agent-by">By ${escapeHtml(a.by)}</span></div>
+      </div>
+      <p class="agent-dialog-text">${escapeHtml(a.text)}</p>
+      <div class="agent-stats">
+        <div><strong>${icon("star", "fill")}${a.rating}</strong><span>Ratings</span></div>
+        <i aria-hidden="true"></i>
+        <div><strong>${a.convos}</strong><span>Conversations</span></div>
+      </div>
+      <button class="btn btn-primary agent-start" data-go="#/chat/agent?a=${a.key}">${icon("chat_bubble")}Start Chat</button>
+    </section>`;
+    $(".device").appendChild(wrap);
+    wrap.addEventListener("click", (e) => { if (e.target === wrap) closeAgent(); });
+    wrap.querySelector(".agent-start").focus();
+  }
+  function closeAgent() { $("#agent-modal")?.remove(); }
+
+  // ── Auth: sign up, more details, first profile, login ─────
+
+  function authShell(inner, { back = true } = {}) {
+    return `<div class="view auth">
+      ${back ? `<button class="icon-btn md auth-close" data-auth-close aria-label="Close">${icon("close")}</button>` : ""}
+      <img class="auth-logo" src="assets/logo.svg" alt="internet.io" width="190" height="32">
+      ${inner}
+    </div>`;
+  }
+
+  const field = (name, label, { type = "text", placeholder = "", value = "", autocomplete = "off", hint = "" } = {}) => `
+    <label class="auth-field">
+      <span class="auth-label">${label}</span>
+      <span class="auth-input">
+        <input name="${name}" type="${type}" placeholder="${placeholder}" value="${escapeHtml(value)}" autocomplete="${autocomplete}" ${type === "email" ? 'inputmode="email" autocapitalize="off"' : ""}>
+        ${type === "password" ? `<button type="button" class="icon-btn" data-reveal aria-label="Show password">${icon("visibility")}</button>` : ""}
+      </span>
+      ${hint ? `<span class="auth-hint">${hint}</span>` : ""}
+    </label>`;
+
+  const socialButtons = () => `
+    <div class="social">
+      <button type="button" class="btn social-btn" data-social="google"><img src="assets/icons/google.png" alt="" width="20" height="20">Continue with Google</button>
+      <button type="button" class="btn social-btn" data-social="facebook"><img src="assets/icons/facebook.png" alt="" width="20" height="20">Continue with Facebook</button>
+    </div>
+    <div class="or" aria-hidden="true"><span>OR</span></div>`;
+
+  const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+  // Enables the submit button only when every rule passes, like the desktop design's disabled state.
+  function wireForm(form, rules, onSubmit) {
+    const submit = form.querySelector("[type=submit]");
+    const check = () => { submit.disabled = !rules(form); };
+    form.addEventListener("input", check);
+    form.addEventListener("submit", (e) => { e.preventDefault(); if (rules(form)) onSubmit(form); });
+    check();
+  }
+
+  function viewSignup() {
+    screen.innerHTML = authShell(`
+      <p class="auth-headline">Get started with Internet.io</p>
+      ${socialButtons()}
+      <form class="auth-form" id="signup-form" novalidate>
+        ${field("first", "First Name", { placeholder: "E.g., John", autocomplete: "given-name" })}
+        ${field("last", "Last Name", { placeholder: "E.g., Doe", autocomplete: "family-name" })}
+        ${field("email", "Email", { type: "email", placeholder: "your@email.com", autocomplete: "email" })}
+        ${field("password", "Password", { type: "password", placeholder: "Create a strong password", autocomplete: "new-password", hint: "At least 8 characters" })}
+        <button class="btn btn-primary btn-block" type="submit">Continue</button>
+      </form>
+      <p class="auth-switch">Already have an account? <a href="#/login">Login</a></p>`);
+    wireForm($("#signup-form"),
+      (f) => f.first.value.trim() && f.last.value.trim() && EMAIL_RE.test(f.email.value.trim()) && f.password.value.length >= 8,
+      (f) => {
+        state.signup = { first: f.first.value.trim(), last: f.last.value.trim(), email: f.email.value.trim() };
+        go("#/signup/profile");
+      });
+  }
+
+  // Shown after Google / Facebook: the provider filled some fields, the user completes the rest.
+  function viewSignupDetails() {
+    const d = state.signup.first ? state.signup : { first: "John", last: "", email: "johndoe@example.com" };
+    screen.innerHTML = authShell(`
+      <p class="auth-headline">Almost there! Just a few details left.</p>
+      <form class="auth-form" id="details-form" novalidate>
+        ${field("first", "First Name", { value: d.first, autocomplete: "given-name" })}
+        ${field("last", "Last Name", { placeholder: "Enter your last name", value: d.last, autocomplete: "family-name" })}
+        ${field("email", "Email", { type: "email", value: d.email, autocomplete: "email" })}
+        <button class="btn btn-primary btn-block" type="submit">Continue</button>
+      </form>`);
+    const form = $("#details-form");
+    wireForm(form,
+      (f) => f.first.value.trim() && f.last.value.trim() && EMAIL_RE.test(f.email.value.trim()),
+      (f) => {
+        state.signup = { first: f.first.value.trim(), last: f.last.value.trim(), email: f.email.value.trim() };
+        go("#/signup/profile");
+      });
+    const empty = [...form.querySelectorAll("input")].find((i) => !i.value);
+    empty?.focus();
+  }
+
+  function viewSignupProfile() {
+    if (!state.signup.first) return go("#/signup");
+    const name = `${state.signup.first} ${state.signup.last}`.trim();
+    screen.innerHTML = authShell(`
+      <p class="auth-headline">Let’s Create Your First Profile</p>
+      <div class="profile-slots" aria-hidden="true">
+        <span class="ms fill is-on">account_circle</span><span class="ms fill">account_circle</span><span class="ms fill">account_circle</span>
+      </div>
+      <form class="auth-form" id="profile-form" novalidate>
+        ${field("profile", "Profile 1", { value: name })}
+        <p class="auth-note">Create up to 3 profiles! One for work, one for fun, or even for someone else.</p>
+        <button class="btn btn-primary btn-block" type="submit">Create</button>
+      </form>`, { back: false });
+    wireForm($("#profile-form"), (f) => f.profile.value.trim(), (f) => {
+      completeAuth({ ...state.signup, profile: f.profile.value.trim() }, `Welcome to internet.io, ${state.signup.first}!`);
+      state.signup = {};
+    });
+  }
+
+  function viewLogin() {
+    screen.innerHTML = authShell(`
+      <p class="auth-headline">Login to your account</p>
+      ${socialButtons()}
+      <form class="auth-form" id="login-form" novalidate>
+        ${field("email", "Email", { type: "email", placeholder: "Enter your email", autocomplete: "email" })}
+        ${field("password", "Password", { type: "password", placeholder: "Enter your password", autocomplete: "current-password" })}
+        <button type="button" class="auth-link" data-soon="Password reset">Forgot password?</button>
+        <button class="btn btn-primary btn-block" type="submit">Login</button>
+      </form>
+      <p class="auth-switch">Don't have an account? <a href="#/signup">Sign up</a></p>`);
+    wireForm($("#login-form"),
+      (f) => EMAIL_RE.test(f.email.value.trim()) && f.password.value.length > 0,
+      (f) => {
+        const email = f.email.value.trim();
+        // A known email restores that account; any other logs in as the demo user.
+        const user = email.toLowerCase() === state.user.email.toLowerCase()
+          ? state.user
+          : { first: "John", last: "Doe", email, profile: "John Doe" };
+        completeAuth(user, `Welcome back, ${user.first}`);
+      });
+  }
+
+  function completeAuth(user, message) {
+    state.user = { first: user.first, last: user.last, email: user.email, profile: user.profile || `${user.first} ${user.last}` };
+    state.signedIn = true;
+    state.guestFollowUps = 0;
+    persist();
+    renderMenu();
+    const target = state.returnTo && !/^#\/(signup|login)/.test(state.returnTo) ? state.returnTo : "#/";
+    state.returnTo = "#/";
+    go(target);
+    toast(message);
   }
 
   // ── Dock, tabs, router ────────────────────────────────────
@@ -598,9 +830,23 @@
 
   function route() {
     closeMenu();
+    closeAgent();
+    closeSheet({ restoreFocus: false });
     setDock("");
     const { parts, params } = parseHash();
     const [page, arg] = parts;
+    const isAuth = page === "signup" || page === "login";
+    app.classList.toggle("is-auth", isAuth);
+    if (isAuth) {
+      topbar.innerHTML = "";
+      if (state.signedIn) return go("#/");
+      if (page === "login") viewLogin();
+      else if (arg === "details") viewSignupDetails();
+      else if (arg === "profile") viewSignupProfile();
+      else viewSignup();
+      screen.scrollTop = 0;
+      return;
+    }
     switch (page) {
       case "results": viewResults(params); setActiveTab("search"); break;
       case "answer": viewAnswer(arg, params); setActiveTab("search"); break;
@@ -618,33 +864,32 @@
   const backdrop = $("#sheet-backdrop");
   let lastFocus = null;
 
-  function openSheet(title = "Sign up to save your answers", text = "Save answers, organise them into folders and ask unlimited follow-ups.", cta = "Continue") {
+  // Guest gate: explains why an account is needed and routes to sign up / login.
+  function openGate(title = "Sign up to save your answers", text = "Save answers, organise them into folders and ask unlimited follow-ups.") {
     lastFocus = document.activeElement;
+    state.returnTo = location.hash || "#/";
     $("#sheet-title").textContent = title;
     $("#sheet-text").textContent = text;
-    $("#sheet-submit").textContent = cta;
     sheet.hidden = false;
     backdrop.hidden = false;
-    $("#sheet-submit").focus();
+    sheet.querySelector("[data-auth=signup]").focus();
   }
-  function closeSheet() {
+  function closeSheet({ restoreFocus = true } = {}) {
+    if (sheet.hidden) return;
     sheet.hidden = true;
     backdrop.hidden = true;
-    if (lastFocus) lastFocus.focus?.();
+    if (restoreFocus && lastFocus) lastFocus.focus?.();
   }
+  backdrop.addEventListener("click", () => closeSheet());
 
-  $("#sheet-form").addEventListener("submit", (e) => {
-    e.preventDefault();
-    const email = $("#sheet-email").value.trim();
-    $("#menu-email").textContent = email || "jane.doe@example.com";
-    state.signedIn = true;
-    state.guestFollowUps = 0;
-    persist();
-    closeSheet();
-    route();
-    toast("Signed in as Jane Doe");
-  });
-  backdrop.addEventListener("click", closeSheet);
+  function renderMenu() {
+    const u = state.user;
+    $("#menu-avatar").textContent = initials(u);
+    $("#menu-name").textContent = `${u.first} ${u.last}`.trim();
+    $("#menu-email").textContent = u.email;
+    $("#menu-profile").textContent = u.profile;
+  }
+  renderMenu();
 
   const menu = $("#avatar-menu");
   function closeMenu() { menu.hidden = true; }
@@ -670,8 +915,61 @@
     if (t.id === "avatar-btn") { menu.hidden = !menu.hidden; return; }
     if (!menu.hidden && !t.closest("#avatar-menu")) closeMenu();
 
-    if (t.dataset.auth === "login") return openSheet("Welcome back", "Log in to see your saved chats and folders.", "Log in");
-    if (t.dataset.auth === "signup") return openSheet();
+    if (t.dataset.auth === "login" || t.dataset.auth === "signup") {
+      if (sheet.hidden) state.returnTo = location.hash || "#/";
+      closeSheet({ restoreFocus: false });
+      return go(t.dataset.auth === "login" ? "#/login" : "#/signup");
+    }
+    if (t.hasAttribute("data-auth-close")) {
+      state.signup = {};
+      return go(state.returnTo || "#/");
+    }
+    if (t.dataset.social) {
+      const provider = t.dataset.social === "google" ? "Google" : "Facebook";
+      if (parseHash().parts[0] === "login") return completeAuth(state.user, `Signed in with ${provider}`);
+      // The provider shares first name and email; last name is left for the user.
+      state.signup = { first: "John", last: "", email: "johndoe@example.com" };
+      return go("#/signup/details");
+    }
+    if (t.hasAttribute("data-reveal")) {
+      const input = t.parentElement.querySelector("input");
+      const show = input.type === "password";
+      input.type = show ? "text" : "password";
+      t.querySelector(".ms").textContent = show ? "visibility_off" : "visibility";
+      t.setAttribute("aria-label", show ? "Hide password" : "Show password");
+      return;
+    }
+    if (t.dataset.cat) {
+      state.exploreCat = t.dataset.cat;
+      return viewExplore();
+    }
+    if (t.dataset.agent) return openAgent(t.dataset.agent);
+    if (t.hasAttribute("data-close-agent")) return closeAgent();
+    if (t.hasAttribute("data-rename")) {
+      const convo = state.conversations[parseHash().parts[1]];
+      const h = $("#convo-name");
+      if (!convo || !h) return;
+      const input = document.createElement("input");
+      input.className = "rename-input";
+      input.value = convo.title;
+      input.setAttribute("aria-label", "Chat name");
+      h.replaceWith(input);
+      t.hidden = true;
+      input.focus();
+      input.select();
+      const done = () => {
+        convo.title = input.value.trim() || convo.title;
+        persist();
+        const nh = document.createElement("h3");
+        nh.id = "convo-name";
+        nh.textContent = convo.title;
+        input.replaceWith(nh);
+        t.hidden = false;
+      };
+      input.addEventListener("blur", done, { once: true });
+      input.addEventListener("keydown", (ev) => { if (ev.key === "Enter") input.blur(); if (ev.key === "Escape") { input.value = convo.title; input.blur(); } });
+      return;
+    }
 
     if (t.dataset.soon !== undefined) {
       e.preventDefault();
@@ -690,7 +988,7 @@
 
     if (t.dataset.tab === "chats" && !state.signedIn) {
       e.preventDefault();
-      return openSheet("Sign in to see your saved chats", "Save answers from any AI model and organise them into folders.");
+      return openGate("Sign in to see your saved chats", "Save answers from any AI model and organise them into folders.");
     }
 
     if (t.dataset.toggle) {
@@ -732,7 +1030,7 @@
         return;
       }
       if (t.hasAttribute("data-save") && convo) {
-        if (!state.signedIn) return openSheet("Sign up to save answers", "Save answers from any AI model and organise them into folders.");
+        if (!state.signedIn) return openGate("Sign up to save answers", "Save answers from any AI model and organise them into folders.");
         if (convo.saved) return toast("Already in My Chats");
         return saveConversation(convo);
       }
@@ -752,6 +1050,7 @@
     if (e.key !== "Escape") return;
     if (!sheet.hidden) closeSheet();
     if (!menu.hidden) closeMenu();
+    closeAgent();
   });
 
   window.addEventListener("hashchange", route);
