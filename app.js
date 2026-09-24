@@ -248,7 +248,11 @@
     exploreCat: "All",
     conversations: store.get("iio.conversations", null) || seedConversations(),
     folders: store.get("iio.folders", null) || seedFolders(),
-    guestQuestions: 0, // searches + follow-ups asked while signed out
+    guestQuestions: 0,
+    searchHash: "#/", // last Search-tab screen, restored when returning to the tab
+    searchScroll: {},
+    loadedQueries: new Set(),
+    currentHash: null, // searches + follow-ups asked while signed out
     lastQuery: DEFAULT_QUERY,
     modelOrder: store.get("iio.modelOrder", null),
     prompts: store.get("iio.prompts", null) || [
@@ -442,17 +446,25 @@
         <div class="result-head"><span class="model"><span class="model-icon skeleton"></span><span style="width:120px"><span class="skeleton" style="display:block;height:12px;margin-bottom:6px"></span><span class="skeleton" style="display:block;height:10px;width:60%"></span></span></span></div>
         <div class="result-body"><span class="skeleton" style="height:14px;width:85%"></span><span class="skeleton" style="height:12px"></span><span class="skeleton" style="height:12px"></span><span class="skeleton" style="height:12px;width:70%"></span></div>
       </div>`).join("");
-    screen.innerHTML = `<div class="view results" aria-busy="true">${skeleton}</div>`;
-
-    const token = Symbol();
-    viewResults.token = token;
-    setTimeout(() => {
-      if (viewResults.token !== token) return;
+    const renderList = () => {
       screen.innerHTML = `<div class="view results">
         <p class="results-meta">${MODELS.length} answers from ${MODELS.length} AI models${activePromptObj() ? ` · Prompt: <strong>${escapeHtml(activePromptObj().name)}</strong>` : ""}</p>
         ${orderedModels().map(resultItem).join("")}
       </div>`;
-    }, 650);
+      state.loadedQueries.add(q);
+      restoreSearchScroll();
+    };
+    // Results already fetched this session come back instantly, like a real cache.
+    if (state.loadedQueries.has(q)) return renderList();
+    screen.innerHTML = `<div class="view results" aria-busy="true">${skeleton}</div>`;
+    const token = Symbol();
+    viewResults.token = token;
+    setTimeout(() => { if (viewResults.token === token) renderList(); }, 650);
+  }
+
+  function restoreSearchScroll() {
+    const y = state.searchScroll[location.hash];
+    if (y) screen.scrollTop = y;
   }
 
   function viewAnswer(key, params) {
@@ -503,7 +515,7 @@
     let convo;
     if (id === "new") {
       const m = modelByKey(params.get("m"));
-      convo = { id: `c${Date.now()}`, model: m.key, title: m.title, messages: [{ from: "ai", html: m.body }], saved: false };
+      convo = { id: `c${Date.now()}`, model: m.key, title: m.title, messages: [{ from: "ai", html: m.body }], saved: false, fromSearch: true };
       state.conversations[convo.id] = convo;
       history.replaceState(null, "", `#/chat/${convo.id}`);
     } else if (id === "agent") {
@@ -563,7 +575,7 @@
       return;
     }
     const guest = !state.signedIn;
-    const showTip = state.signedIn && !state.tipHidden && !store.get("iio.tipOff", false);
+    const showTip = convo.fromSearch && !state.tipHidden && !store.get("iio.tipOff", false);
     setDock(`${showTip ? `<div class="tip" role="status">
         <div><p>Switch to the Search tab to keep comparing.</p>
         <label class="tip-check"><input type="checkbox" id="tip-off">Don’t show this again</label></div>
@@ -1327,7 +1339,13 @@
     });
   }
 
+  const isSearchPage = (hash) => /^#\/?(results|answer|$)/.test(hash || "#/") || hash === "" || hash === "#";
+
   function route() {
+    // Remember where the user was on the Search tab (and how far they scrolled).
+    if (state.currentHash && isSearchPage(state.currentHash)) state.searchScroll[state.currentHash] = screen.scrollTop;
+    state.currentHash = location.hash || "#/";
+    if (isSearchPage(state.currentHash)) state.searchHash = state.currentHash;
     viewResults.token = null; // cancel a pending results render from a previous screen
     closeMenu();
     closeRowMenu();
@@ -1360,6 +1378,7 @@
       default: viewHome(); setActiveTab("search");
     }
     if (page !== "chat") screen.scrollTop = 0;
+    if (page === "answer" || page === "results") restoreSearchScroll();
   }
 
   // ── Sheet & menu ──────────────────────────────────────────
@@ -1559,6 +1578,14 @@
       return input.focus({ preventScroll: true });
     }
 
+    if (t.dataset.tab === "search") {
+      e.preventDefault();
+      // Reselecting Search while on it goes home; from another tab it restores the last search screen.
+      const onSearch = isSearchPage(location.hash || "#/");
+      if (onSearch && location.hash !== "#/" && location.hash !== "") { state.searchScroll = {}; return go("#/"); }
+      if (!onSearch) return go(state.searchHash);
+      return;
+    }
     if (t.dataset.tab === "explore" && !state.signedIn) {
       e.preventDefault();
       return openGate("Sign up to explore AI agents", "Chat with specialized agents for writing, coding, studying and more.");
